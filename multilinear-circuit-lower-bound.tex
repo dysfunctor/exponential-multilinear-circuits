@@ -4,21 +4,31 @@
 \usepackage{xcolor}
 \definecolor{refblue}{HTML}{244C72}
 \usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=refblue,filecolor=refblue,
-  pdftitle={A stretched-exponential lower bound for syntactically multilinear circuits}]{hyperref}
+  pdftitle={An exponential lower bound for syntactically multilinear circuits}]{hyperref}
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
 \newcommand{\F}{\mathbb F}
+\newcommand{\Z}{\mathbb Z}
 \newcommand{\E}{\mathbb E}
 \newcommand{\HC}{\mathrm{HC}}
 \newcommand{\price}{\mathcal B}
+\newcommand{\cM}{\mathcal M}
+\newcommand{\cD}{\mathcal D}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\cS}{\mathcal S}
+\newcommand{\cE}{\mathcal E}
 \newcommand{\one}{\mathbf 1}
 \newcommand{\ip}[2]{\langle #1,#2\rangle}
 \newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\bary}{\operatorname{bar}}
+\newcommand{\lamext}{\lambda_\wedge}
 \setlength{\emergencystretch}{1.5em}
 \raggedbottom
-\title{A stretched-exponential lower bound for\\syntactically multilinear circuits}
+\title{An exponential lower bound for\\syntactically multilinear circuits}
 \author{}
 \date{}
 \begin{document}
@@ -29,73 +39,350 @@ We exhibit a polynomial-time Boolean function on \(N\) bits whose multilinear
 representative over any field of characteristic two requires \(2^{N^\delta}\)
 wires in any syntactically multilinear arithmetic circuit, for a fixed
 \(\delta>0\). The bound holds for circuits of arbitrary depth with unbounded
-fan-out. Deterministic decomposable circuits with internal negations, and
-read-once parity branching programs with path-dependent query orders, can both
-be converted with linear overhead into syntactically multilinear circuits for
-the representative, so the same bound applies to them.
+fan-out. Both deterministic decomposable circuits with internal negations
+and read-once parity branching programs with path-dependent query orders
+convert, with linear overhead, into syntactically multilinear circuits for
+this representative, so the bound applies to them as well. When
+characteristic two does not admit ports (a spectral property defined in
+the text), the bound is \(\exp(\Omega(N^{1/4}/(\log N)^{5/4}))\) wires.
+
+We then prove a bound of the form \(2^{N^\delta}\) in every
+characteristic, including zero, for one function that does not depend on
+the characteristic. This function replaces the mod-two determinant of
+the first by one two's-complement digit of the integer determinant. When
+the characteristic does not admit ports, the argument has two
+ingredients. The depth reduction of Kumar, Oliveira and Saptharishi writes the
+circuit as a sum of products of small-scope factors drawn from a fixed
+dictionary. A sparse-support geometric certificate then assigns each
+factor a point that is closer than the cone tip, by a uniform margin, to
+every site the factor touches. Exterior
+price estimates and a parity correction from prior work apply in all
+characteristics. As a corollary, the predicate that a Boolean matrix
+represents a single cycle requires \(2^{N^{\gamma_\chi}}\) wires
+on \(N\) input bits in each characteristic \(\chi\), for some
+\(\gamma_\chi>0\). In characteristic zero the bound applies to
+decomposable probabilistic circuits whose weights may be negative.
 \end{abstract}
 
-\section{One polynomial and two Boolean models}
-Let \(d\ge4\) be even, \(k=d/2\), and \(N=d^2+d+1\). The inputs are a
-bit \(b\), a vector \(x\in\{0,1\}^d\), and a matrix \(Y\in\{0,1\}^{d\times d}\).
-Write \([d]=\{1,\ldots,d\}\) and \(I(x)=\{i:x_i=1\}\). Define
-\[
- f_d(b,x,Y)=
+\section{Results}
+
+\subsection{Characteristic two}\label{sec:function}
+Let \(n\ge4\) be even, \(k=n/2\), and \(N=n^2+n+1\). The inputs are a
+selector bit \(\zeta\), a vector \(x\in\{0,1\}^n\), and a matrix
+\(Y\in\{0,1\}^{n\times n}\). Write \([n]=\{1,\ldots,n\}\) and
+\(I(x)=\{i:x_i=1\}\). Define
+\begin{equation}\label{eq:fn}
+ f_n(\zeta,x,Y)=
  \begin{cases}
- \one\{Y\text{ is the permutation matrix of a single }d\text{-cycle}\},
-       & b=0,\\
- \det_{\F_2}Y_{[k],I(x)}, & b=1,\ |I(x)|=k,\\
- 0, & b=1,\ |I(x)|\ne k .
+ \one\{Y\text{ is the permutation matrix of a single }n\text{-cycle}\},
+       & \zeta=0,\\
+ \det_{\F_2}Y_{[k],I(x)}, & \zeta=1,\ |I(x)|=k,\\
+ 0, & \zeta=1,\ |I(x)|\ne k .
  \end{cases}
-\]
-The function \(f_d\) is computable in polynomial time: for \(b=0\), check that
-\(Y\) is a permutation matrix and follow the orbit of 1; for \(b=1\), run
-Gaussian elimination on the selected columns.
-Let \(P_d\) be its unique multilinear representative over \(\F_2\), viewed
-over any field \(F\) of characteristic two by scalar extension.
-Uniqueness follows by interpolation in one Boolean variable at a time.
+\end{equation}
+Here \(Y_{[k],I}\) consists of the first \(k\) rows of \(Y\) and the
+columns in \(I\), in increasing order. The function \(f_n\) is computable
+in polynomial time: for \(\zeta=0\), check that \(Y\) is a permutation
+matrix and follow the orbit of \(1\); for \(\zeta=1\), run Gaussian
+elimination on the selected columns. Let \(F_n\) be its unique multilinear
+representative over \(\F_2\), viewed over any field \(F\) of
+characteristic two by scalar extension. Uniqueness follows by
+interpolation in one Boolean variable at a time.
 
 The \emph{scope} of an arithmetic gate is the set of variables labeling
-inputs that reach it. A circuit is \emph{syntactically multilinear} if the
-two input scopes of every multiplication are disjoint. Gates are binary
-additions, subtractions, and multiplications; arbitrary field constants are
-allowed; and size is the number of wires. A binary circuit with \(g\) arithmetic gates has \(2g\) input wires
-to those gates, counted with multiplicity.
+inputs that reach it. A circuit is \emph{syntactically multilinear} (SML)
+if the two input scopes of every multiplication are disjoint. Gates are
+binary additions, subtractions, and multiplications; arbitrary field
+constants are allowed; depth and fan-out are unrestricted; and size is
+the number of wires. A binary circuit with \(g\) arithmetic gates has
+\(2g\) input wires to those gates, counted with multiplicity, so wire and
+gate counts agree up to a factor of two.
 
-\begin{theorem}[Arithmetic lower bound]\label{thm:main}
-There is a \(\delta>0\) such that for all sufficiently large even \(d\) and
-every field \(F\) of characteristic two, any syntactically multilinear
-arithmetic circuit over \(F\) computing \(P_d\) has at least \(2^{N^\delta}\)
-wires.
+Whether a characteristic \emph{admits ports} is a property defined in
+\cite{hc} and recalled in Section~\ref{sec:classes}; which
+characteristics have it is not known.
+
+\begin{theorem}[Characteristic two]\label{thm:two}
+There is a \(\delta>0\) such that for all sufficiently large even \(n\)
+and every field \(F\) of characteristic two, any syntactically
+multilinear arithmetic circuit over \(F\) computing \(F_n\) has at least
+\(2^{N^\delta}\) wires. If characteristic two does not admit ports, the
+number \(s\) of wires satisfies \(\log s=\Omega(N^{1/6})\).
 \end{theorem}
 
 \begin{corollary}[Deterministic decomposable circuits]\label{cor:dd}
-Every deterministic decomposable circuit (d-D) computing \(f_d\), even with
-arbitrary fan-out and negations at any gate, has at least
+Every deterministic decomposable circuit (d-D) computing \(f_n\), even
+with arbitrary fan-out and negations at any gate, has at least
 \(2^{N^{\Omega(1)}}\) wires.
 \end{corollary}
 
 \begin{corollary}[Read-once parity branching programs]\label{cor:bp}
-Every syntactic read-once parity branching program computing \(f_d\)
-has at least \(2^{N^{\Omega(1)}}\) edges, even if each path queries the
+Every syntactic read-once parity branching program computing \(f_n\) has
+at least \(2^{N^{\Omega(1)}}\) edges, even if each path queries the
 variables in its own order.
 \end{corollary}
 
-\paragraph{Relation to the general circuit bound.}
-It is already known \cite[Theorem 1.1]{hc} that every arithmetic circuit having
-the directed Hamiltonian-cycle polynomial \(\HC_d\) as its degree-\(d\)
-homogeneous component needs
-\(\exp(c(\log d)^2/(\log\log d)^2)\) gates, in every characteristic. By the
-cycle restriction of Section~\ref{sec:cuts} and the two simulations of
-Section~\ref{sec:sim}, that
-quasi-polynomial bound applies to all three models above. The contribution
-here is the improvement to \(2^{N^\delta}\). When characteristic two admits
-ports, a property defined in Section~\ref{sec:proof}, this is
-\cite[Theorem 12.2]{hc}. The new argument handles the case without ports,
-where syntactic multilinearity lets us replace the low-rank cut summands of
-\cite[Lemma 3.3]{hc} with exact products.
+Both Boolean models admit linear-size simulations by SML circuits over \(\F_2\).
+Section~\ref{sec:two} proves the theorem and gives both simulations.
+Appendix~\ref{app:sharp-two} sharpens the bound on \(\log s\) in the
+case without ports to \(\Omega(N^{1/4}/(\log N)^{5/4})\) for all three models.
 
-\section{Prior results}
+\subsection{All characteristics}\label{sec:function-all}
+The second function replaces the determinant over \(\F_2\) by a digit of
+a determinant over the integers, so that its definition does not involve
+a field. Put
+\[
+ D(x,Y)=\begin{cases}\det_{\Z}Y_{[k],I(x)},&|I(x)|=k,\\
+ 0,&\text{otherwise.}\end{cases}
+\]
+A \(k\times k\) determinant with entries in \(\{0,1\}\) is a sum of
+\(k!\) terms in \(\{-1,0,1\}\), so \(|D|\le k!\). Set
+\[
+ r=r_n=1+\lceil\log_2(k!+1)\rceil .
+\]
+Then \(-2^{r-1}\le D\le2^{r-1}-1\), so \(D\) has a two's-complement
+representation with \(r\) digits. For \(0\le j<r\) let \(b_j(D)\) be bit
+\(j\) of the integer in \([0,2^r-1]\) congruent to \(D\) modulo \(2^r\),
+with bits numbered from zero. Then
+\begin{equation}\label{eq:twos}
+ D=\sum_{j=0}^{r-2}2^j\,b_j(D)\;-\;2^{r-1}\,b_{r-1}(D).
+\end{equation}
+The new input is a \emph{digit index} \(j\), written in binary with
+\(\lceil\log_2r\rceil\) bits. Define
+\[
+ f^*_n(\zeta,x,Y,j)=
+ \begin{cases}
+ \one\{Y\text{ is the permutation matrix of a single }n\text{-cycle}\},
+       &\zeta=0,\\
+ b_j(D(x,Y)),&\zeta=1,\ j<r,\\
+ 0,&\zeta=1,\ j\ge r.
+ \end{cases}
+\]
+For \(\zeta=0\) the function ignores \(x\) and \(j\). It has
+\(n^2+n+1+\lceil\log_2r_n\rceil=n^2+O(n)\) inputs; in statements about
+\(f^*_n\) the letter \(N\) denotes this number. The function is
+computable in polynomial time: for \(\zeta=1\), compute the integer
+determinant by fraction-free elimination and read one digit.
+
+Let \(F^*_n\) be the multilinear polynomial with integer coefficients
+that agrees with \(f^*_n\) on the Boolean cube. Over a field \(F\) we use
+the image of \(F^*_n\) in \(F[\zeta,x,Y,j]\), which is the unique
+multilinear polynomial over \(F\) agreeing with \(f^*_n\) on the cube.
+
+The least significant two's-complement digit of an integer is its residue
+modulo two, even for negative integers. Hence the first function is a
+restriction of the second:
+\begin{equation}\label{eq:restrict}
+ f^*_n(\zeta,x,Y,0)=f_n(\zeta,x,Y),
+\end{equation}
+where the digit index \(0\) is encoded by the all-zero word.
+
+\begin{theorem}[All characteristics]\label{thm:all}
+For every characteristic \(\chi\), zero or a prime, there is a
+\(\delta_\chi>0\) such that for all sufficiently large even \(n\) and
+every field \(F\) of characteristic \(\chi\), any syntactically
+multilinear arithmetic circuit over \(F\) computing \(F^*_n\) has at least
+\(2^{N^{\delta_\chi}}\) wires. If \(\chi\) does not admit ports, the
+number \(s\) of wires satisfies
+\begin{equation}\label{eq:all-quant}
+ \log s=\Omega\bigl(N^{\alpha/(6+3\alpha)}\bigr)
+\end{equation}
+for an absolute constant \(\alpha>0\).
+\end{theorem}
+
+\begin{corollary}[Read-once algebraic branching programs]\label{cor:abp}
+For every characteristic \(\chi\) and every field \(F\) of characteristic
+\(\chi\), every syntactic read-once algebraic branching program over
+\(F\) that agrees with \(f^*_n\) on the Boolean cube has at least
+\(2^{N^{\delta}}\) edges, for any fixed \(\delta<\delta_\chi\) and all
+large \(n\). Each path may read the variables in its own order.
+\end{corollary}
+
+\begin{corollary}[Probabilistic circuits with negative weights]\label{cor:pc}
+Let a decomposable probabilistic circuit over the reals, with weights of
+either sign, compute a nonzero real multiple of \(f^*_n\) on the Boolean
+cube; for instance, the uniform distribution on the inputs accepted by
+\(f^*_n\). Then it has at least \(2^{N^{\delta}}\) edges, for any fixed
+\(\delta<\delta_0\) and all large \(n\), where \(\delta_0\) is the
+exponent of Theorem~\ref{thm:all} in characteristic zero.
+\end{corollary}
+
+Branching programs are defined in Section~\ref{sec:sim} and
+probabilistic circuits in Section~\ref{sec:prob-sim}.
+Corollary~\ref{cor:abp} covers mod-\(p\) path-counting programs whose path
+count, as an element of \(\F_p\), equals the Boolean output. It does not
+cover semantic read-once programs, or programs that accept when the path
+count is merely nonzero. Corollary~\ref{cor:pc} assumes neither
+smoothness nor determinism, and the input units of the circuit may be
+arbitrary real functions of single variables. It uses
+Theorem~\ref{thm:all} in characteristic zero: real weights cannot be
+reduced modulo two, so Theorem~\ref{thm:two} does not apply.
+
+By~\eqref{eq:restrict}, pinning the digit index to \(0\) turns a circuit
+for \(F^*_n\) over a field of characteristic two into a circuit for
+\(F_n\) with no more wires, and likewise in the two Boolean models. So
+Theorem~\ref{thm:two} and Corollaries~\ref{cor:dd} and~\ref{cor:bp} hold
+for \(f^*_n\) as well, including the bound~\eqref{eq:two-quant}.
+
+\begin{corollary}[Single-cycle predicate]\label{cor:cycle}
+Let \(B_m(Y)\) be the indicator that the Boolean \(m\times m\) matrix
+\(Y\) is the permutation matrix of a single \(m\)-cycle. For every
+characteristic \(\chi\) there is a \(\gamma_\chi>0\) such that, for all
+sufficiently large \(m\) and every field of characteristic \(\chi\), any
+syntactically multilinear circuit for the multilinear representative of
+\(B_m\) requires at least \(2^{(m^2)^{\gamma_\chi}}\) wires.
+\end{corollary}
+
+\paragraph{Formulas and algebraic branching programs.}
+Multilinear formulas and syntactically multilinear algebraic branching
+programs are special cases of the circuits in Theorems~\ref{thm:two}
+and~\ref{thm:all}. A formula all of whose gates compute multilinear
+polynomials can be made syntactically multilinear without increasing its
+size \cite{raz}. A branching program in which the edges of every path
+have labels in pairwise disjoint sets of variables converts to a
+syntactically multilinear circuit by the prefix sums of
+Section~\ref{sec:sim}. Before \cite{hc}, exponential lower bounds were
+not known even for these restricted models. The best bound for
+multilinear formulas was \(n^{\Omega(\log n)}\) \cite{raz}, and for
+syntactically multilinear branching programs it was the bound
+\(\Omega(n^2/\log^2n)\) for circuits \cite{akv}.
+
+\paragraph{Relation to the general circuit bound.}
+By \cite[Theorem 1.1]{hc}, every arithmetic circuit having
+the directed Hamiltonian-cycle polynomial \(\HC_n\) as its degree-\(n\)
+homogeneous component needs
+\(\exp(c(\log n)^2/(\log\log n)^2)\) gates, in every characteristic. By the
+cycle restriction of Section~\ref{sec:cycle} and the simulations of
+Sections~\ref{sec:sim} and~\ref{sec:prob-sim}, that quasi-polynomial bound applies to all the
+models above. The contribution here is the improvement to
+\(2^{N^\delta}\). When the characteristic admits ports, the improvement
+already follows from \cite[Theorem 12.2]{hc}. Our arguments handle the
+case without ports, where syntactic multilinearity lets us replace the
+low-rank cut summands of \cite[Lemma 3.3]{hc} by exact products.
+
+\subsection{Overview of the proof}\label{sec:overview}
+If the characteristic admits ports, both theorems follow from
+\cite[Theorem 12.2]{hc} applied to the cycle branch. Suppose it does not.
+The theory of \cite{hc} assigns a \emph{price} to a tensor whose legs
+are placed at sites of a metric space. Four rules matter here: local
+linear maps do not increase the price; a product of factors has price
+zero when the legs of each factor sit at one point; moving a leg costs
+the distance moved times a logarithmic factor; and a sum of \(L\) tensors
+costs at most a term proportional to \(\log L\) more than its most
+expensive summand. We say that legs placed at a point before they are
+moved are \emph{supplied} from that point, their \emph{supplier}. The cost of supplying all legs
+from the tip of a cone, called the \emph{star budget}, bounds the price
+of every tensor on the given sites. Both theorems compare two estimates
+of the price of a table of maximal minors.
+
+\paragraph{Characteristic two.}
+\begin{enumerate}
+\item \emph{Cuts} (Lemma~\ref{lem:cut}). A syntactically multilinear
+circuit with \(s\) wires determines a list of at most \(s+1\) balanced
+cuts of the bits \(x\). Under every specialization of the remaining
+variables, the output is a sum of products, one across each listed cut.
+We say that the list \emph{serves} such a sum.
+\item \emph{Minor tables.} For Boolean \(x\) the determinant branch is
+multilinear in \(Y\), so any matrix \(C\) may be substituted for the
+first \(k\) rows of \(Y\). The result is the \emph{minor table}
+\(T_C\colon x\mapsto\det C_{I(x)}\). One list of cuts therefore serves
+every minor table.
+\item \emph{Prices} (Proposition~\ref{prop:cuts}). Place the \(n\) bits at
+\(n\) unit sites around the tip of a cone. Some minor table has price
+within \(O((\log n)^2)\) of the star budget (Lemma~\ref{lem:star}). Every
+product across a listed cut is cheaper than the star budget by a fixed
+margin, because each side of the cut can be supplied from its own point.
+The binary lamp certificate of \cite{hc} (Lemma~\ref{lem:lamp}) provides
+one placement for all the cuts. If \(\log(2L)\le n^{1/3}\), Hoeffding's
+inequality gives biases that work for every cut at once. Moving the two
+suppliers of each cut by the same scale \(n^{-1/2}\) then saves more than
+the cost of summing the \(L\) products.
+\end{enumerate}
+
+\paragraph{Other characteristics.}
+The lower price estimate works with exterior powers of the minor table.
+In characteristic two these are its ordinary tensor powers. In other
+characteristics they differ by signs, and correcting the signs costs
+\(\log2\) per site (Lemma~\ref{lem:sign}). That exceeds what one bit per
+site can save. Several bits per site amortize the correction, but a
+balanced cut may then split the bits of a site, and the binary
+certificate no longer applies. The proof of Theorem~\ref{thm:all} avoids
+cuts.
+\begin{enumerate}
+\item \emph{Realization} (Lemma~\ref{lem:realize}). By~\eqref{eq:twos}, a
+weighted sum of the \(r\) digit restrictions of a circuit for \(F^*_n\)
+computes the integer determinant. For Boolean \(x\) this is multilinear
+in \(Y\), so the entries of \(Y\) may be treated as coefficients. The
+result is one SML circuit in the bits \(x\) over a polynomial ring.
+Specializing its coefficients to any matrix \(C\) gives the minor table
+\(T_C\).
+\item \emph{Dictionary} (Lemma~\ref{lem:dict}). A division-free depth
+reduction writes that circuit as a sum of \(L\) products. Every factor has
+scope at most \(t\) and comes from a fixed dictionary of polynomially many
+labeled polynomials, and \(\log L=O((n/t)\log(2+s+n))\). The scopes are
+fixed before \(C\) is chosen.
+\item \emph{Lower price} (Section~\ref{sec:exterior}). Place \(da\)
+bits at \(d\) unit sites around the tip of a cone, \(a\) bits per site.
+The exterior near-star estimate \cite[Theorem 8.1]{hc} gives a matrix
+\(C\) whose exterior value is within \(O((\log n)^2(1+d/a))\) of the star
+budget. The sign correction costs \(d\log2\) in total.
+\item \emph{Upper price} (Section~\ref{sec:proof-all}). The pointwise
+certificate (Theorem~\ref{thm:cert}) gives one placement of the sites,
+and one point for every dictionary factor, such that the factor's point
+is at distance at most \(1-\varepsilon\) from every site the factor
+touches. A factor with small scope touches few sites, and the certificate
+covers every site it touches, whichever of the site's bits it contains.
+Supplying each factor of a product from its own point therefore saves a
+fixed margin on every bit. The saving is of order \(da/\log s\), and
+summing the products costs \(O(\sqrt{\log d}\,\log L)\).
+\end{enumerate}
+With \(a=d^{\alpha/2}\) and \(t=d^{\alpha}\), the saving exceeds the
+sign correction, the near-star error and the cost of the sum unless
+\(\log s\ge d^{\alpha/3}\).
+
+\paragraph{Organization.}
+Sections~\ref{sec:common} and~\ref{sec:prices} give the cycle restriction
+and the price rules. Section~\ref{sec:two} proves Theorem~\ref{thm:two}
+and concludes with the d-D and read-once parity branching program
+corollaries. Appendix~\ref{app:sharp-two} gives the sharper estimate in
+characteristic two. For Theorem~\ref{thm:all}, Section~\ref{sec:exterior}
+gives the exterior price estimate, Section~\ref{sec:circuit} constructs
+the factor dictionary, and Sections~\ref{sec:geometry} and~\ref{sec:proof-all}
+give the geometric certificate and price comparison.
+Section~\ref{sec:cycle-only} deduces the single-cycle bound.
+Section~\ref{sec:status} collects remarks.
+
+\paragraph{Dependence on \cite{hc}.}
+All references are to the November~24, 2026 edition. We import the
+following statements without proof.
+\begin{itemize}
+\item The price rules: transport, the sum rule and closed sublevels
+\cite[Lemma 2.1]{hc}; the diagonal rate of sites in a ball
+\cite[Lemma 2.2]{hc}; the weighted price and its rules
+\cite[Equation (11.1) and Lemma 11.1]{hc}.
+\item The classes of priced Hadamard spaces, homogeneous prices on cones
+and spare Hilbert coordinates \cite[Sections 2.2 and 2.3]{hc}, and the
+product theorem \cite[Theorem 6.1]{hc}.
+\item The entropy comparison for pair laws \cite[Corollary 5.2]{hc} and
+the coordinate-exchange inequality \cite[Equation (7.1)]{hc}.
+\item The realization of tangent cones inside the class
+\cite[Section 7.4]{hc}.
+\item The exterior value and the near-star estimate
+\cite[Section 8 and Theorem 8.1]{hc}.
+\item The bound for characteristics with ports \cite[Theorem 12.2]{hc}
+and the sparse Hamiltonian-cycle projection \cite[Lemma 3.4]{hc}.
+\item For Theorem~\ref{thm:two} only: the binary lamp certificate
+\cite[Theorem 7.1]{hc} and the flag calculus
+\cite[Sections 9 and 10]{hc}.
+\end{itemize}
+The parity correction (Lemma~\ref{lem:sign}) is contained in the proof of
+\cite[Theorem 11.2]{hc} for batches of several exterior copies. We need it
+for single copies and write the argument out. The entropy placement
+(Lemma~\ref{lem:placement}) is the argument of \cite[Lemma 7.3]{hc},
+which is stated there for one particular graph; we give it for a general
+graph.
+
+\section{Prior work}
 \paragraph{Syntactically multilinear circuits.}
 Raz \cite{raz} proved that multilinear formulas for the permanent and the
 determinant have size \(n^{\Omega(\log n)}\), by bounding the rank of a
@@ -104,16 +391,20 @@ multilinear circuits, Raz, Shpilka, and Yehudayoff \cite{rsy} proved an
 \(\Omega(n^{4/3}/\log^2 n)\) lower bound, and Alon, Kumar, and Volk \cite{akv}
 improved it to \(\Omega(n^2/\log^2 n)\). Before \cite{hc} this was the best
 bound known for the model. Lemma~\ref{lem:cut} uses the balanced-gate
-argument of Valiant, Skyum, Berkowitz, and Rackoff \cite{vsbr}, which Raz and
-Yehudayoff \cite{ry} showed preserves syntactic multilinearity.
+argument of Valiant, Skyum, Berkowitz, and Rackoff \cite{vsbr}; Raz and
+Yehudayoff \cite{ry} showed that this argument preserves syntactic
+multilinearity. Kumar, Oliveira, and Saptharishi \cite{kos} gave depth
+reductions for syntactically multilinear circuits to sums of products of
+polynomials in few variables. Lemma~\ref{lem:dict} uses their balanced
+circuit as a fixed dictionary of factors over the coefficient ring.
 
 \paragraph{Read-once parity branching programs.}
 Jukna \cite{juknacodes} proved exponential lower bounds for oblivious
-read-once parity branching programs. Brosenne, Homeister, and Waack \cite{bhw} and
-Bollig, Waack, and Woelfel \cite{bww} did so for graph-driven programs, where
-a single graph constrains the query order on every path. Without such a
-constraint the best bound was the \(\Omega(n^2/\log^2 n)\) of Volk
-\cite{volk}, and Jukna asked for an exponential bound
+read-once parity branching programs. Exponential bounds for graph-driven
+programs, where a single graph constrains the query order on every path,
+were proved by Brosenne, Homeister, and Waack \cite{bhw} and by Bollig,
+Waack, and Woelfel \cite{bww}. Without such a constraint the best bound was
+Volk's \(\Omega(n^2/\log^2 n)\) \cite{volk}, and Jukna asked for an exponential bound
 \cite[Research Problem 16.14]{juknabook}.
 
 \paragraph{Deterministic decomposable circuits.}
@@ -121,41 +412,499 @@ Deterministic decomposable negation normal forms were introduced by Darwiche
 \cite{darwiche} and studied in the knowledge compilation map of Darwiche and
 Marquis \cite{dm}. Bova, Capelli, Mengel, and Slivovsky \cite{bcms} proved
 exponential lower bounds for them through communication complexity. Those
-bounds apply only to negation normal form, where negations occur only at the
-inputs. Before \cite{hc}, we know of no superpolynomial lower bound for d-Ds
-in which negations may occur at any gate.
+bounds are restricted to negation normal form, where negations occur only
+at the inputs. Apart from \cite{hc}, we know of no superpolynomial lower
+bound for d-Ds in which negations may occur at any gate.
 
-\section{The two simulations}\label{sec:sim}
+\paragraph{Probabilistic circuits.}
+Probabilistic circuits \cite{cvv} represent distributions by sums and
+products of functions of single variables. Decomposable circuits with
+nonnegative weights are sum-product networks, which Martens and
+Medabalimi \cite{mm} related to monotone syntactically multilinear
+circuits. Circuits with negative weights were introduced by Loconte et
+al.\ \cite{lsm}, who obtain nonnegative outputs by squaring and show that
+this can be exponentially more succinct than nonnegative weights; see
+also \cite{lmv}. A decomposable circuit with weights of either sign is a
+syntactically multilinear circuit over the reals. Apart from \cite{hc},
+we know of no superpolynomial lower bound for such circuits without a
+further structural restriction.
+
+\section{Restrictions and characteristics with ports}\label{sec:common}
+The proofs use restrictions of the polynomials \(F_n\) and \(F^*_n\). With
+the selector at \(0\) we extract a homogeneous component. With the
+selector at \(1\) we obtain, for every matrix \(C\), a tensor in
+distinguished bits.
+A function \(T\) on \(\{0,1\}^{\nu}\) with values in a field is regarded
+as a tensor with \(\nu\) legs of dimension two; this is the \emph{value
+tensor} of any polynomial that agrees with \(T\) on the cube. We work with
+value tensors, not coefficient tensors. For even \(\nu\) and a matrix
+\(C\) with \(\nu/2\) rows and \(\nu\) columns, the \emph{minor table} is
+\begin{equation}\label{eq:minor}
+ T_C(x)=
+ \begin{cases}\det C_{I(x)},& |I(x)|=\nu/2,\\0,& |I(x)|\ne \nu/2,\end{cases}
+ \qquad x\in\{0,1\}^{\nu},
+\end{equation}
+where \(C_I\) consists of the columns in \(I\) in increasing order.
+
+Extending scalars to a larger field does not change a circuit, so a lower
+bound over an extension field applies to the original circuit.
+
+\subsection{The cycle restriction}\label{sec:cycle}
+Set the selector to \(0\) and all other inputs outside \(Y\) to \(0\).
+By interpolation, in every characteristic the representative of the
+restricted function, for \(f_n\) and for \(f^*_n\) alike, is the formal
+polynomial
+\[
+ \sum_{\pi\text{ an }n\text{-cycle}}
+      \prod_{i=1}^n Y_{i,\pi(i)}
+      \prod_{(i,l):\,l\ne\pi(i)}(1-Y_{il}).
+\]
+Each summand
+is the indicator that \(Y\) equals one particular permutation matrix. Its
+degree-\(n\) part is the product of the \(n\) positive literals, so the
+degree-\(n\) homogeneous component is the directed Hamiltonian-cycle
+polynomial \(\HC_n\).
+
+\begin{proposition}[Characteristics with ports]\label{prop:ports}
+Suppose the characteristic \(\chi\) admits ports
+(Section~\ref{sec:classes}). There is an
+\(\varepsilon>0\) such that for all sufficiently large even \(n\) and
+every field \(F\) of characteristic \(\chi\), every arithmetic circuit
+over \(F\) computing \(F^*_n\), or computing \(F_n\) when \(\chi=2\), has
+at least \(2^{N^{\delta}}\) wires, for any fixed
+\(\delta<\varepsilon/2\).
+\end{proposition}
+
+\begin{proof}
+By \cite[Theorem 12.2]{hc} there is an \(\varepsilon>0\) such that every
+arithmetic circuit having \(\HC_n\) as its degree-\(n\) homogeneous
+component needs more than \(2^{n^\varepsilon}\) gates for all large
+\(n\), over every field of this characteristic. The cited bound even
+applies to limits of coefficient vectors, as in border complexity. The
+cycle restriction exhibits \(\HC_n\) as the degree-\(n\) homogeneous
+component of a restriction of the polynomial computed. Since
+\(N=n^2+O(n)\), the claim follows.
+\end{proof}
+
+\section{Prices}\label{sec:prices}
+We recall the price rules of \cite{hc}. Prices use natural logarithms. Throughout, \(K\) is an
+uncountable algebraically closed field of the characteristic in
+question.
+
+\subsection{Spectral prices}
+Fix a finite set of at least two sites. A tensor has one
+finite-dimensional space at each site, and a \emph{restriction} applies a
+linear map at each site. A \emph{spectral point} is a nonnegative
+function \(\varphi\) on such tensors that is monotone under restriction,
+multiplicative on tensor products, additive on direct sums, and
+normalized. A \emph{price} is \(H(T)=D\log\varphi(T)\) for a scale
+\(D>0\), with \(H(0)=-\infty\). The diagonal tensor on a set \(A\) of
+sites, which shares one label with \(q\) values among the sites of \(A\),
+has price \(\delta(A)\log q\); the number \(\delta(A)\) is the
+\emph{diagonal rate} of \(A\). For two sites, \(d(a,b)=\delta(\{a,b\})\) is the \emph{wire
+distance}. A \emph{spectral space} is a metric space in which every
+finite set of positive diameter carries a price inducing the given
+distances, compatibly with adding one-dimensional slots
+\cite[Section 2.1]{hc}. A \emph{placement} \(x\) assigns each leg of a
+tensor \(T\) to a point; legs at the same point are grouped, and
+\(H(T;x)\) is the resulting price. We use the following rules.
+\begin{enumerate}
+\item[(P1)] A restriction does not increase the price. Prices add on
+tensor products. A nonzero tensor all of whose legs sit at one point has
+price zero. Hence a nonzero product \(\bigotimes_fT_f\), in which all
+legs of each \(T_f\) sit at one point \(z_f\), has price zero.
+\item[(P2)] \emph{Transport} \cite[Lemma 2.1]{hc}. If \(T\ne0\) has local
+dimensions \(q_i\), then
+\(|H(T;x)-H(T;y)|\le\sum_id(x_i,y_i)\log q_i\).
+\item[(P3)] \emph{Sum rule} \cite[Lemma 2.1]{hc}. For \(L\) tensors of
+the same format with legs at sites of \(A\),
+\(H(\sum_{j}T_j)\le\max_jH(T_j)+\delta(A)\log L\).
+\end{enumerate}
+
+\subsection{Classes of spaces, ports and cones}\label{sec:classes}
+A \emph{Hadamard space} is a complete geodesic \(\mathrm{CAT}(0)\) space.
+Let \(\mathcal X_\chi\) be the class of Hadamard spaces that admit
+spectral prices over a field of characteristic \(\chi\). It depends only
+on \(\chi\), its spaces admit spectral prices over \(K\), and it is
+closed under positive rescaling, closed convex subspaces and pointed
+ultralimits \cite[Section 2.2]{hc}.
+
+A class of metric spaces \emph{admits ports} if there are regular
+multigraphs of one fixed degree and unbounded orders, and a constant
+\(C\), such that for every placement of the vertices of any of these
+graphs in a space of the class, the mean squared distance between two
+independent uniform vertices is at most \(C\) times the mean squared
+length of a uniform arc. The characteristic \(\chi\) \emph{admits ports}
+if \(\mathcal X_\chi\) does \cite[Section 2.2]{hc}.
+
+If \(\chi\) does not admit ports, the product theorem
+\cite[Theorem 6.1]{hc} gives a nonempty subclass
+\[
+ \cM=\cM_\chi\subseteq\mathcal X_\chi
+\]
+that has no ports and is closed under positive rescaling, closed convex
+subspaces, pointed ultralimits and finite \(\ell_2\) products. A class of
+one-point spaces admits ports, so \(\cM\) contains a space with two
+distinct points; it also contains the Hilbert space \(\ell_2\)
+\cite[Section 2.3]{hc}.
+
+\paragraph{Cones.}
+All cones below are Euclidean cones: tangent cones, their \(\ell_2\)
+products, and products with \(\ell_2\). In such a cone with tip \(0\),
+write \(\norm z=d(0,z)\), write
+\(\tau z\) for the dilation of \(z\) by \(\tau\ge0\), and put
+\[
+ \ip xz=\tfrac12\bigl(\norm x^2+\norm z^2-d(x,z)^2\bigr).
+\]
+The pairing is homogeneous in each variable under dilations, so
+\begin{equation}\label{eq:conelaw}
+ d(x,\tau z)^2=\norm x^2-2\tau\ip xz+\tau^2\norm z^2 .
+\end{equation}
+An \(\ell_2\) product of cones is a cone, and the pairing adds over its
+coordinates. Points \(u_1,\ldots,u_d\) of a cone are \emph{unit} if
+\(\norm{u_i}=1\), and \emph{centered} if \(\sum_i\ip v{u_i}\le0\) for
+every point \(v\). Centered points have their Cartan barycenter at the
+tip, because then
+\(\sum_id(v,u_i)^2=d\norm v^2+\sum_i\norm{u_i}^2-2\sum_i\ip v{u_i}
+\ge\sum_i\norm{u_i}^2\). In a product of cones, points are centered if
+they are centered in every coordinate.
+
+A \emph{priced cone} is a product \(Y\times\ell_2\), where \(Y\) is a
+Hadamard cone in \(\cM\), together with spectral prices over \(K\) that
+are positively homogeneous under dilation. Such prices exist
+\cite[Section 2.3]{hc}. We identify \(Y\) with the points of Hilbert
+coordinate zero; unit and centered points of \(Y\) remain so. For points
+\(u_1,\ldots,u_d\) of \(Y\) in the unit ball, \(d\ge2\),
+\begin{equation}\label{eq:diag}
+ \delta(\{u_1,\ldots,u_d\})\le C\sqrt{\log(2d)}
+\end{equation}
+by \cite[Lemma 2.2]{hc}. The rate depends on the set of sites, not on how
+many legs sit at each.
+
+\subsection{Weighted prices}
+Let \(T\) have ordered bases on its legs, placed at \(x\), and give each
+basis letter \(v\) on leg \(i\) a real weight \(t_i(v)\). In the
+grouped power \(T^{\otimes h}\) a word has the sum of its letter weights.
+For a weight vector \(w\) let \([T^{\otimes h}]_w\) be the \emph{sector}
+obtained by projecting leg \(i\) onto the words of weight \(w_i\). The
+\emph{weighted price} \cite[Equation (11.1)]{hc} is
+\begin{equation}\label{eq:weighted}
+ \price(T)=\price_x(T)=\sup_{h\ge1}\frac1h\max_w
+   \Bigl(H([T^{\otimes h}]_w;x)+\sum_iw_i\Bigr),
+\end{equation}
+where zero sectors are ignored; the supremum is also a limit. By
+\cite[Lemma 11.1]{hc}:
+\begin{enumerate}
+\item[(W1)] A local map that preserves weight spaces does not increase
+the weighted price.
+\item[(W2)] \emph{Sum rule.} For \(L\) tensors of the same weighted format,
+\(\price_x(\sum_jT_j)\le\max_j\price_x(T_j)+D_x\log L\), where \(D_x\) is
+the diagonal rate of the set of sites of \(x\).
+\item[(W3)] \emph{Transport.} If \(H(T;y)\le H_0\) and
+\(r_i=d(y_i,x_i)\), then
+\(\price_x(T)\le H_0+\sum_ir_i\log\sum_ve^{t_i(v)/r_i}\), the sum being
+over the letters of leg \(i\). At \(r_i=0\) the summand is the largest
+letter weight.
+\end{enumerate}
+
+\paragraph{Binary legs.}
+All our legs have the letters \(0\) and \(1\), with weight \(0\) on
+letter \(0\) and a weight \(\theta\), the \emph{bias}, on letter \(1\).
+The transport term in (W3) is then
+\[
+ A(r,\theta)=r\log(1+e^{\theta/r})\quad(r>0),\qquad
+ A(0,\theta)=\max(0,\theta).
+\]
+Its derivative \(\partial_rA(r,\theta)\) is the binary entropy, in nats,
+of the probability \((1+e^{-\theta/r})^{-1}\). In particular
+\(A(r,\theta)\) is nondecreasing in \(r\), and
+\begin{equation}\label{eq:entropy-lb}
+ \partial_rA(r,\theta)\ge c_A>0\qquad(\tfrac12\le r\le1,\ |\theta|\le1)
+\end{equation}
+for an absolute constant \(c_A\), since then \(|\theta/r|\le2\).
+
+\subsection{The exterior value}
+Let \(C\) be a \(k_0\times n_0\) matrix over \(K\) of rank \(k_0\), with
+columns \(c_1,\ldots,c_{n_0}\). For \(h\ge1\), the exterior form
+\(\Omega_h(C)\) has one input from
+\(\bigwedge^*(c_l\otimes K^h)\) for each column: it wedges the inputs in
+the order of the columns, takes the component of top degree and applies a
+volume form on \(K^{k_0}\otimes K^h\). Its sector \(\Omega_{h,p}\) fixes
+the exterior degree \(p_l\) of each input. Place column \(l\) at a site
+\(y_l\) of a priced cone and give it a bias \(\theta_l\). The
+\emph{exterior value} \cite[Equation (8.1)]{hc} is
+\[
+ \lamext(C;y,\theta)=\sup_{h\ge1}\frac1h\max_p
+   \Bigl(H(\Omega_{h,p};y)+\sum_l\theta_lp_l\Bigr).
+\]
+The input of column \(l\) has the basis of wedge monomials
+\(\bigwedge_{e:\,x_{le}=1}(c_l\otimes e_e)\), indexed by words
+\(x_{l\cdot}\in\{0,1\}^h\); its degree is the number of ones. For
+\(h=1\) the form \(\Omega_1(C)\) is, in these bases, the minor
+table~\eqref{eq:minor}.
+
+\section{The characteristic-two bound}\label{sec:two}
+This section proves Theorem~\ref{thm:two}. Let \(F\) have characteristic
+two and let \(K\supseteq F\) be uncountable and algebraically closed. If
+characteristic two admits ports, Proposition~\ref{prop:ports} gives the
+bound. For the remaining case we place each of the \(n\) bits \(x_i\)
+at its own site and put
+\[
+ k=n/2,\qquad m=\log(2n),\qquad M=100m,
+\]
+with natural logarithms.
+
+\subsection{Balanced cuts}
+A \emph{balanced cut} of \(n\) distinguished variables is a set
+\(U\subseteq[n]\) with \(n/3\le|U|\le2n/3\), together with its complement.
+
+\begin{lemma}[Balanced products under specialization]\label{lem:cut}
+Let \(x_1,\ldots,x_n\), with \(n\ge4\), be distinguished variables of a
+binary syntactically multilinear circuit with \(s\) wires. There is a list of balanced cuts \(U_1,\ldots,U_L\), with \(L\le s+1\),
+such that every scalar specialization of the other variables gives an output
+of the form
+\[
+                  \sum_{j=1}^{L} A_j(x_{U_j})B_j(x_{[n]\setminus U_j}).
+\]
+The factors may depend on the scalars, and the same list works for
+specializations to any extension field.
+\end{lemma}
+\begin{proof}
+Let \(S_g\) be the set of distinguished variables in the scope of \(g\),
+before specialization, and let \(F_g\) be the polynomial computed at \(g\)
+after specialization. Call \(g\) large if \(|S_g|>2n/3\) and small otherwise.
+If the output is small, pad its scope to a balanced cut and take the other
+factor to be 1.
+
+For a large output, we maintain an expression for the output as a sum of
+recorded cut products plus terms \(Q_gF_g\) over large gates \(g\), where
+each multiplier \(Q_g\) uses only variables outside \(S_g\). Initially this
+expression is \(1\cdot F_{\rm out}\). Process the large gates from the output
+toward the inputs; before expanding \(g\), add the multipliers of all
+occurrences of \(F_g\) into a single \(Q_g\).
+
+At a sum or difference, pass \(Q_g\) to each child with its sign. For a
+small child \(h\), record \((\pm Q_g)F_h\) on a cut with
+\(S_h\subseteq U\subseteq S_g\) and
+\(|U|=\max(|S_h|,\lceil n/3\rceil)\). Padding inside \(S_g\) leaves the
+multiplier outside \(U\), even when \(h\) is a constant.
+
+At a product, propagate to the child \(h\) with the larger set \(S_h\),
+writing \(h'\) for its sibling. By disjointness, the new multiplier
+\(Q_gF_{h'}\) uses no variable of \(S_h\), and \(|S_h|\ge |S_g|/2>n/3\).
+If \(h\) is small, record \(F_h(Q_gF_{h'})\) across \(S_h\) and its complement.
+
+Each expansion is an identity. Every input is small, and each wire
+\((h,g)\) records at most one term, because all occurrences of \(F_g\) were
+combined before \(g\) was expanded. Fixing ties and padding choices in advance and retaining
+zero terms makes the list independent of the specialization.
+\end{proof}
+
+As in Section~\ref{sec:overview}, a list of cuts \emph{serves} a tensor
+on the distinguished bits if the tensor is a sum of products, one across
+each listed cut.
+
+\paragraph{The minor restriction.}
+Fix \(\zeta=1\) and a Boolean vector \(x=\one_I\). As a polynomial in
+\(Y\), the output of \(F_n\) equals the selected determinant when
+\(|I|=k\), and zero otherwise. Indeed, both sides are multilinear in
+\(Y\) and agree on every Boolean matrix. We can therefore substitute
+\emph{any} \(C\in K^{k\times n}\) into the first \(k\) rows and zero into
+the rest. The resulting value tensor on the \(n\) bits \(x\) is the minor
+table~\eqref{eq:minor} of \(C\). Evaluating Lemma~\ref{lem:cut} on the \(x\)-cube
+expresses every \(T_C\) as a sum of \(L\le s+1\) tables, each of which
+factors across its listed balanced cut. The cuts are fixed \emph{before}
+\(C\) is chosen. Thus a circuit for \(F_n\) with \(s\) wires gives one
+list of at most \(s+1\) balanced cuts that serves every minor table.
+
+\subsection{Two ingredients}
+Give the bit \(x_i\) a bias \(\theta_i\), that is, weight \(\theta_i\)
+on letter \(1\) and \(0\) on letter \(0\), and put
+\(S(\theta)=\sum_{i=1}^nA(1,\theta_i)\). This is the star budget for one
+bit per site.
+
+\begin{lemma}[Binary lamp certificate {\cite[Theorems 6.1 and 7.1]{hc}}]
+\label{lem:lamp}
+Suppose characteristic two does not admit ports. For every list of \(L\)
+cuts of \([n]\), \(n\ge2\), each with at least \(n/4\) elements on either
+side, there exist a Hadamard cone in \(\cM_2\), unit centered points
+\(u_1,\ldots,u_n\) in it, and two points \(Z_{\ell,0},Z_{\ell,1}\) for
+each cut, such that
+\[
+ \norm{Z_{\ell,v}}\le C\sqrt{\log n+\log(2L)},\qquad
+ \sum_{i=1}^n\ip{u_i}{Z_{\ell,c_\ell(i)}}\ge c\,n/\sqrt{\log(2n)},
+\]
+where \(c_\ell(i)\in\{0,1\}\) is the side of \(i\) in cut \(\ell\). The
+constants are absolute.
+\end{lemma}
+
+The cited theorem also bounds the distance between the two points of a
+cut, which is needed for cut summands of large rank. Our products are
+exact, so we do not use it.
+
+\begin{lemma}[One bias per site]\label{lem:star}
+Let \(u_1,\ldots,u_n\) be unit centered sites of a priced cone over a
+field \(K\) of characteristic two, with \(n\) even. Draw independent
+biases \(\theta_i\) uniformly from the \(n\) midpoints
+\(\{-M+(2j-1)M/n:1\le j\le n\}\). With probability at least
+\(7/8\), some \(k\times n\) Vandermonde matrix \(C\) over \(K\) satisfies
+\begin{equation}\label{eq:star}
+ \price(T_C)\ \ge\ S(\theta)-C_6\,m^2 ,
+\end{equation}
+where \(C_6\) is an absolute constant.
+\end{lemma}
+
+\begin{proof}
+Use the insertion argument of \cite[Section 10.3]{hc} with a uniform site
+order \(\pi\) and independent midpoint biases \(\xi_j\) attached to its
+positions. Then \(\theta_{\pi(j)}=\xi_j\) gives the required independent
+biases at the sites. At a threshold \(|t|\le M/2\), write
+\(X(i,\xi)=\one\{F_i>t-\xi\}-(1/2-t/(2M))\) for the centered indicator
+of the logistic site flag \(F_i\). A fresh uniform site \(I\) and an
+independent midpoint \(\xi\) are uniform on the full site--midpoint grid.
+The centering estimate of \cite[Section 10.3]{hc} on this grid gives
+\(\E\ip{\Phi}{X(I,\xi)}\le\epsilon\norm{\Phi}\) for every fixed flag
+\(\Phi\), with \(\epsilon=1/n+O(n^{-10})\).
+
+Let \(Z\) be the insertion sum before step \(j\). Swap \(I\) into position
+\(j\) of \(\pi\), keeping the biases at their positions. The new experiment
+has the same law, and at most one earlier indicator changes, so the
+insertion Lipschitz bound gives \(d(Z',Z)\le2\) for the new prefix sum.
+Since \((I,\xi_j)\) is independent of \(Z\) and \(\norm{X(I,\xi_j)}\le1\),
+\[
+ \E\ip{Z}{X(\pi(j),\xi_j)}
+ =\E\ip{Z'}{X(I,\xi_j)}
+ \le 2+\epsilon\,\E\norm Z .
+\]
+This is the cross-term bound in \cite[Section 10.3]{hc}. Its squared-norm
+recurrence gives second moment \(O(n+n^2\epsilon^2)=O(n)\), and its
+simultaneous threshold-rank and integration estimates give one Vandermonde
+matrix per realization with expected exterior deficit \(O(M\log n)\).
+Markov's inequality gives deficit at most \(C_6m^2\) with probability
+at least \(7/8\). In characteristic two, sorting occupied inputs by copy
+introduces no signs, so \(\Omega_h(C)=T_C^{\otimes h}\). Each exterior
+degree sector is a local projection of its weight sector, giving
+\(\price(T_C)\ge\lamext(C;u,\theta)\) by~\eqref{eq:weighted}.
+\end{proof}
+
+\subsection{The cut bound}
+
+\begin{proposition}[Few cuts cannot serve every minor table]\label{prop:cuts}
+Suppose characteristic two does not admit ports. If a fixed list of \(L\)
+balanced cuts serves every minor table \(T_C\) on \(n\) bits, then
+\(\log(2L)>n^{1/3}\) for all sufficiently large even \(n\).
+\end{proposition}
+
+\begin{proof}
+Suppose \(q=\log(2L)\le n^{1/3}\). Apply Lemma~\ref{lem:lamp} and pass to
+the priced cone. Write \(Z_{\ell i}=Z_{\ell,c_\ell(i)}\) for the supplier
+of bit \(i\) on cut \(\ell\), and \(a_{\ell i}=\ip{u_i}{Z_{\ell i}}\).
+For some \(R\) with \(R^2=O(m+q)\),
+\[
+ |a_{\ell i}|\le\norm{Z_{\ell i}}\le R,\qquad
+ \sum_i a_{\ell i}\ge c n/\sqrt m .
+\]
+
+Draw the independent biases of Lemma~\ref{lem:star} and put
+\(\varphi(t)=\partial_r A(1,t)\). This binary entropy lies in
+\([0,\log 2]\) and is bounded below on \([-1,1]\). A fraction
+\(\Omega(1/M)=\Omega(1/m)\) of the midpoints lie in that interval.
+Thus the weighted score \(D_\ell=\sum_i a_{\ell i}\varphi(\theta_i)\)
+has mean \((\E\varphi(\theta_1))\sum_i a_{\ell i}\ge 2b\), where
+\(b=c_1 n/m^{3/2}\) for an absolute \(c_1>0\). Each summand has range
+of length at most \(R\log 2\). Hoeffding's inequality and a union bound give
+\[
+ \Pr\{\min_\ell D_\ell<b\}
+ \le L\exp\!\left(-\Omega\!\left(\frac{b^2}{nR^2}\right)\right)
+ \le \exp\!\left(n^{1/3}-\Omega(n^{2/3}/m^3)\right)=o(1).
+\]
+Since Lemma~\ref{lem:star} succeeds with probability at least \(7/8\),
+fix biases with \(D_\ell\ge b\) for every cut and a matrix \(C\) with
+\(\price(T_C)\ge S(\theta)-C_6m^2\).
+
+Set \(\tau=n^{-1/2}\). Supply each side of cut \(\ell\) from its point
+\(\tau Z_{\ell,v}\). A cut product \(V_\ell\) has ordinary price at most
+zero there by (P1). Since \(\tau R=o(1)\), the cone law~\eqref{eq:conelaw}
+gives the transport distances
+\begin{equation}\label{eq:two-distance}
+ r_{\ell i}=d(u_i,\tau Z_{\ell i})
+     =1-\tau a_{\ell i}+O(\tau^2R^2).
+\end{equation}
+On \(1/2\le r\le2\), the first two \(r\)-derivatives of \(A(r,t)\)
+are bounded uniformly in \(t\). Indeed the first is an entropy and the
+second is \(z^2e^z/(r(1+e^z)^2)\), where \(z=t/r\).
+The transport rule (W3) and Taylor's formula now give
+\[
+ \price(V_\ell)\le\sum_i A(r_{\ell i},\theta_i)
+       \le S(\theta)-\tau D_\ell+O(n\tau^2R^2).
+\]
+The list serves \(T_C\). Summing its \(L\) cut products costs
+\(O(\sqrt m\,q)\) by (W2) and~\eqref{eq:diag}. Comparing with the
+lower bound on \(\price(T_C)\) gives
+\[
+ \frac{c_1\sqrt n}{m^{3/2}}=\tau b
+   \le C_6m^2+O(n\tau^2R^2+\sqrt m\,q)
+   =O(m^2+n^{1/3}\sqrt m).
+\]
+This is impossible for large \(n\), since \(m=\log(2n)\).
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:two}]
+An \(s\)-wire circuit for \(F_n\) supplies a list of at most \(s+1\)
+balanced cuts serving every minor table by Lemma~\ref{lem:cut} and the
+minor restriction. If characteristic two does not admit ports,
+Proposition~\ref{prop:cuts} gives \(\log s=\Omega(n^{1/3})
+=\Omega(N^{1/6})\), so any fixed \(0<\delta<1/6\) works in this case.
+If characteristic two admits ports, Proposition~\ref{prop:ports} gives
+the bound for any fixed \(0<\delta<\varepsilon/2\).
+\end{proof}
+
+\subsection{The two Boolean corollaries}\label{sec:sim}
+Over \(\F_2\), the following simulations take a d-D with \(s\) wires or
+a read-once parity branching program with \(s\) edges to an SML circuit
+with \(O(s+1)\) wires.
+
 \begin{proof}[Proof of Corollary~\ref{cor:dd}]
 In a d-D, the inputs to an AND have pairwise disjoint scopes. The inputs to
 an OR are mutually exclusive on every Boolean assignment \cite[Definition 3]{dd}.
 Binarizing a gate preserves both properties and increases the total wire
-count by at most a constant factor. Over \(\F_2\), replace the three Boolean operations by
+count by at most a constant factor. Replace the three Boolean operations by
 \[
  u\mathbin{\mathrm{AND}}v\longmapsto uv,\qquad
  u\mathbin{\mathrm{OR}}v\longmapsto u+v,\qquad
- \mathrm{NOT}\,u\longmapsto 1+u .
+ \mathrm{NOT}\,u\longmapsto 1-u .
 \]
 At an OR, mutual exclusion makes the sum equal to the Boolean output. At an
 AND, disjointness makes the multiplication syntactically multilinear.
-An internal NOT introduces only a scalar and an addition. The translation
+An internal NOT introduces only a scalar and a subtraction. The translation
 keeps every shared gate shared. By induction, every gate computes a
 multilinear polynomial that agrees with the gate's Boolean value on the cube,
-so the output equals \(P_d\). A d-D with \(s\) wires thus yields a
-syntactically multilinear circuit with \(O(s+1)\) wires.
-Theorem~\ref{thm:main} gives the bound.
+so the output is the multilinear representative of the computed function. A
+d-D with \(s\) wires for \(f_n\) thus yields a syntactically multilinear
+circuit over \(\F_2\) with \(O(s+1)\) wires for \(F_n\), and
+Theorem~\ref{thm:two} gives the bound.
 \end{proof}
 
-\begin{proof}[Proof of Corollary~\ref{cor:bp}]
-A read-once parity branching program is an acyclic directed multigraph with
-a source \(r\), a sink \(t\), and edges labeled by literals or Boolean
-constants \cite[Definition 1.1]{volk}. Each variable is tested at most once
-on each directed source--sink path. On a Boolean input the program outputs
-the parity of the number of source--sink paths whose labels are all true.
-The simulation below follows \cite[Claim 2.6]{volk}. Discard vertices and edges outside source--sink paths. Arithmetize a
-positive literal \(z\) as \(z\), a negative literal as \(1+z\), and a
-constant as itself. Write \(\ell_e\) for the resulting edge polynomial.
-In topological order compute the prefix path sums
+\paragraph{Branching programs.}
+A \emph{syntactic read-once algebraic branching program} over \(F\) is an
+acyclic directed multigraph with a source \(r\) and a sink \(t\). Every
+edge is labeled by a constant of \(F\) or by a polynomial in a single
+input variable, which the edge is said to \emph{test}. Each variable is
+tested at most once on each directed source--sink path. The program
+computes the sum, over source--sink paths, of the products of the labels.
+It \emph{agrees with} a Boolean function if this sum equals the value of
+the function at every point of the Boolean cube. Its size is the number
+of edges. A \emph{read-once parity branching program}
+\cite[Definition 1.1]{volk} is the case \(F=\F_2\) with labels \(z\),
+\(1+z\) and constants: on a Boolean input its output is the parity of the
+number of source--sink paths whose labels are all true.
+
+\begin{proof}[Proof of Corollaries~\ref{cor:bp} and~\ref{cor:abp}]
+The simulation follows \cite[Claim 2.6]{volk}. Reduce every label modulo
+\(z^2-z\) in its variable \(z\). It becomes affine, and its values on the
+cube are unchanged. Discard vertices and edges outside source--sink
+paths. Write \(\ell_e\) for the resulting edge polynomial. In topological
+order compute the prefix path sums
 \[
        H_r=1,\qquad H_v=\sum_{e=(u,v)} H_u\,\ell_e\quad(v\ne r).
 \]
@@ -164,404 +913,933 @@ paths. If \(e\) tests \(z\) and some source--\(u\) path also tests \(z\),
 then that path followed by \(e\) and any \(v\)--\(t\) path tests \(z\)
 twice, a contradiction. Thus the multiplication by \(\ell_e\) has disjoint input
 scopes, even when prefixes merge after different query orders. The circuit
-computes each \(H_u\) once. Binarizing its sums uses \(O(s+1)\) wires in
-total for \(s\) graph edges. The value of \(H_t\) on the cube is the path
-count modulo two, which is \(f_d\). Since \(H_t\) is multilinear, it equals
-\(P_d\), and Theorem~\ref{thm:main} applies.
+computes each \(H_u\) once. Computing the affine labels and binarizing the
+sums uses \(O(s+1)\) wires in total for \(s\) graph edges. The polynomial
+\(H_t\) is multilinear and agrees on the cube with the function that the
+program computes, so it is the multilinear representative of that
+function over \(F\). Theorem~\ref{thm:two} gives
+Corollary~\ref{cor:bp}, and Theorem~\ref{thm:all} gives
+Corollary~\ref{cor:abp}.
 \end{proof}
 
-\paragraph{Size conventions and padding.}
-In both corollaries, taking any fixed positive exponent smaller than the one
-in Theorem~\ref{thm:main} absorbs the constant-factor overhead of the
-translation. For a d-D with \(g\) gates, merge identical input nodes and then
-remove duplicate inputs to each gate by Boolean idempotence; at most
-\((N+g+2)^2\) wires remain. For a read-once parity branching program with \(v\) vertices,
-identically labeled parallel edges cancel in pairs, and at most
-\((2N+2)v^2\) edges remain. Hence the same form of lower bound holds for the
-number of gates of a d-D and the number of vertices of a read-once parity branching program. At
-an arbitrary length \(n\), take the largest even \(d\) with \(N\le n\) and
-ignore the remaining bits. Since \(N=\Theta(n)\) and pinning inputs to zero
-preserves each of the three models, all three bounds hold at every
-sufficiently large length.
+\section{Exterior prices for grouped columns}\label{sec:exterior}
+The proof in arbitrary characteristic places several columns at each
+site. Each column has its own bias, and the columns at a site share one
+parity word in the comparison with the exterior value.
 
-\paragraph{An upper bound.}
-The function \(f_d\) has a read-once parity branching program of size \(2^{O(d)}\).
-The first edges test the selector \(b\). On the cycle branch, use states
-\((S,v)\) with \(1\in S\subseteq[d]\) and \(v\in S\), recording a walk from
-vertex 1 that has visited exactly \(S\) and is currently at \(v\). For each
-\(u\notin S\), a chain of \(d\) edges from \((S,v)\) tests \(Y_{v,u}=1\) and
-\(Y_{v,u'}=0\) for \(u'\ne u\), and leads to \((S\cup\{u\},u)\). From
-\(([d],v)\) a final chain tests that row \(v\) is the indicator of column 1
-and leads to the sink. A row is tested only when the walk leaves its
-vertex, so every path is read-once. An accepting path tests every row;
-hence one exists exactly when \(Y\) is the permutation matrix of a
-\(d\)-cycle, and it is then unique. On the minor branch, use states \((i,R)\) with
-\(0\le i\le d\) and \(R\subseteq[k]\), recording the rows matched to selected
-columns among the first \(i\). From \((i-1,R)\) one edge tests \(x_i=0\) and
-leads to \((i,R)\). Another tests \(x_i=1\), followed for each \(r\notin R\)
-by an edge testing \(Y_{r,i}=1\) that leads to \((i,R\cup\{r\})\). The
-accepting state is \((d,[k])\). Step \(i\) tests only \(x_i\) and entries of
-column \(i\), so every path is read-once. The accepting paths correspond
-to the bijections \(\sigma:I(x)\to[k]\) with all \(Y_{\sigma(i),i}=1\).
-Their parity is the permanent of \(Y_{[k],I(x)}\), which equals the
-determinant in characteristic two. Both branches have \(2^{d}d^{O(1)}\) edges. The
-prefix simulation gives the same upper bound for syntactically multilinear
-circuits, namely \(2^{O(\sqrt N)}\) in terms of the input length.
-
-\section{Balanced cuts and the two restrictions}\label{sec:cuts}
-The proof of Theorem~\ref{thm:main} uses two restrictions of the same
-polynomial. With \(b=0\) we extract a homogeneous component. With \(b=1\)
-we obtain a family of truth tables in \(x\), indexed by a matrix \(C\).
-A \emph{balanced cut} is a set \(U\subseteq[d]\) with
-\(d/3\le|U|\le2d/3\), together with its complement.
-Lemma~\ref{lem:cut} shows that the circuit determines a single list of
-balanced cuts that serves every table in the family.
-
-\begin{lemma}[Balanced products under specialization]\label{lem:cut}
-Let \(x_1,\ldots,x_d\), with \(d\ge4\), be distinguished variables of a
-binary syntactically multilinear circuit with \(w\) wires. There is a list of balanced cuts \(U_1,\ldots,U_L\), with \(L\le w+1\),
-such that every scalar specialization of the other variables gives an output
-of the form
+\begin{theorem}[Exterior near-star estimate {\cite[Theorem 8.1]{hc}}]
+\label{thm:star}
+Let \(u_1,\ldots,u_d\) be unit centered sites of a priced cone. Let
+\(a\ge1\) with \(n_0=da\) even, and \(M\ge100\log n_0\). Put \(a\) columns
+at each site, the \(j\)th with bias
+\begin{equation}\label{eq:grid}
+ \theta_j=-M+(2j-1)M/a,\qquad1\le j\le a .
+\end{equation}
+There is an \((n_0/2)\times n_0\) Vandermonde matrix \(C\) over \(K\)
+with
 \[
-                  \sum_{j=1}^{L} A_j(x_{U_j})B_j(x_{[d]\setminus U_j}).
+ 0\le d\sum_{j=1}^aA(1,\theta_j)-\lamext(C;y,\theta)
+  \le C_0M\Bigl(1+\frac da\Bigr)\log n_0 ,
 \]
-The factors may depend on the scalars, and the same list works for
-specializations to any extension field.
+where \(C_0\) is an absolute constant.
+\end{theorem}
+
+In \cite{hc} the error term is stated with the total number of columns
+and the number of columns per site, which are \(n_0\) and \(a\) here.
+The theorem holds for any listing of the columns, since reordering the
+inputs changes each sector by a sign \cite[Section 8.1]{hc}; we list them
+site by site. The sum
+\(\cS=d\sum_jA(1,\theta_j)\) is the \emph{star budget}: by (W3) it bounds
+the weighted price of every tensor on these legs.
+
+Exterior multiplication introduces signs when copies of a tensor are
+regrouped into an ordinary tensor power. The next lemma bounds their
+cost.
+
+\begin{lemma}[Parity correction]\label{lem:sign}
+Let \(u_1,\ldots,u_d\) be unit sites of a priced cone and \(n_0=da\).
+Index the columns of a matrix \(C\in K^{k_0\times n_0}\) of rank \(k_0\)
+by the slots \((i,j)\), \(i\in[d]\), \(j\in[a]\), in lexicographic order.
+Place slot \((i,j)\) at \(u_i\) with any bias \(\theta_{ij}\). Regard the
+minor table \(T_C\) as a tensor with \(n_0\) binary legs, leg \((i,j)\)
+at \(u_i\), with weight \(\theta_{ij}\) on letter \(1\). Then
+\[
+ \price(T_C)\ge\lamext(C;y,\theta)-d\log2 .
+\]
+In characteristic two, \(\price(T_C)\ge\lamext(C;y,\theta)\).
 \end{lemma}
+
 \begin{proof}
-Let \(S_g\) be the set of distinguished variables in the scope of \(g\),
-before specialization, and let \(P_g\) be the polynomial computed at \(g\)
-after specialization. Call \(g\) large if \(|S_g|>2d/3\) and small otherwise.
-If the output is small, pad its scope to a balanced cut and take the other
-factor to be 1.
+Fix \(h\ge1\). A basis vector of the inputs of \(\Omega_h(C)\) is an
+array \(x=(x_{se})\) of bits, where \(s\) runs over the slots and
+\(e\in[h]\) over the copies; call the pair \((s,e)\) \emph{occupied} if
+\(x_{se}=1\). The wedge of the inputs lists the vectors
+\(c_s\otimes e_e\) of the occupied pairs with the slot as the major
+index. The volume form is the determinant in a basis of
+\(K^{k_0}\otimes K^h\) ordered with the copy as the major index. Sorting
+the occupied pairs into that order makes the matrix block diagonal over
+the copies. Hence the coefficient of \(\Omega_h(C)\) at \(x\) is
+\[
+ \epsilon(x)\prod_{e=1}^h T_C(x_{\cdot e}),\qquad
+ \epsilon(x)=(-1)^{\mathrm{inv}(x)},
+\]
+where \(\mathrm{inv}(x)\) counts the pairs of occupied \((s,e)\),
+\((s',e')\) with \(s<s'\) and \(e>e'\). The product is the coefficient of
+\(T_C^{\otimes h}\) with the legs grouped by slot. Split
+\(\mathrm{inv}(x)\) according to whether \(s,s'\) lie in the same site.
+The pairs within site \(i\) contribute a sign \(\epsilon_i\) that depends
+only on the letters at site \(i\). For sites \(i<i'\), every slot of
+\(i\) precedes every slot of \(i'\), so the remaining pairs number
+\(\sum_{i<i'}\sum_{e>e'}n_{ie}n_{i'e'}\), where \(n_{ie}\) is the number
+of occupied slots of site \(i\) in copy \(e\). With
+\(\pi_{ie}=n_{ie}\bmod2\) we get
+\begin{equation}\label{eq:signs}
+ \Omega_h(C)(x)=\Bigl(\prod_i\epsilon_i\Bigr)\,\sigma(\pi)\,
+   T_C^{\otimes h}(x),\qquad
+ \sigma(\pi)=(-1)^{\sum_{i<i'}\sum_{e>e'}\pi_{ie}\pi_{i'e'}} .
+\end{equation}
 
-For a large output, we maintain an expression for the output as a sum of
-recorded cut products plus terms \(Q_gP_g\) over large gates \(g\), where
-each multiplier \(Q_g\) uses only variables outside \(S_g\). Initially this
-expression is \(1\cdot P_{\rm out}\). Process the large gates from the output
-toward the inputs; before expanding \(g\), add the multipliers of all
-occurrences of \(P_g\) into a single \(Q_g\).
+Let \(\Sigma\) be the tensor with \(d\) legs of dimension \(2^h\) and
+coefficients \(\sigma(\pi_1,\ldots,\pi_d)\), \(\pi_i\in\{0,1\}^h\). With
+all legs at the tip it has price zero by (P1). Moving leg \(i\) to
+\(u_i\) costs at most \(\norm{u_i}\log2^h=h\log2\) by (P2), so
+\(H(\Sigma;u)\le dh\log2\).
 
-At a sum or difference, pass \(Q_g\) to each child with its sign. For a
-small child \(h\), record \((\pm Q_g)P_h\) on a cut with
-\(S_h\subseteq U\subseteq S_g\) and
-\(|U|=\max(|S_h|,\lceil d/3\rceil)\). Padding inside \(S_g\) leaves the
-multiplier outside \(U\), even when \(h\) is a constant.
-
-At a product, propagate to the child \(h\) with the larger set \(S_h\),
-writing \(h'\) for its sibling. By disjointness, the new multiplier
-\(Q_gP_{h'}\) uses no variable of \(S_h\), and \(|S_h|\ge |S_g|/2>d/3\).
-If \(h\) is small, record \(P_h(Q_gP_{h'})\) across \(S_h\) and its complement.
-
-Each expansion is an identity. Every input is small, and each wire
-\((h,g)\) records at most one term, because all occurrences of \(P_g\) were
-combined before \(g\) was expanded. Fixing ties and padding choices in advance and retaining
-zero terms makes the list independent of the specialization.
+Fix a nonzero exterior sector \(\Omega_{h,p}(C)\). Set
+\(w_{ij}=\theta_{ij}p_{ij}\) for each slot and take the sector
+\(W=[T_C^{\otimes h}]_w\) in~\eqref{eq:weighted}. At site \(i\),
+project \(\Sigma\otimes W\) onto the arrays with exactly \(p_{ij}\)
+ones in each slot \((i,j)\) and with the matching parity word \(\pi_i\).
+Multiply each surviving array by \(\epsilon_i\) and discard the auxiliary
+word. These operations are local to the site. When \(\theta_{ij}=0\),
+every word in that slot has weight zero, and the projection still selects
+exactly the prescribed degree. By~\eqref{eq:signs} the resulting tensor
+is \(\Omega_{h,p}(C)\). Thus (P1) and~\eqref{eq:weighted} give
+\[
+ H(\Omega_{h,p};y)+\sum_{i,j}\theta_{ij}p_{ij}
+  \le H(W;y)+\sum_{i,j}w_{ij}+H(\Sigma;u)
+  \le h\,\price(T_C)+dh\log2 .
+\]
+Dividing by \(h\) and taking the supremum over \(h,p\) proves the bound.
+In characteristic two all signs are \(1\), so the degree projections on
+\(W\) alone give \(\Omega_{h,p}(C)\) at zero additional cost.
 \end{proof}
 
-\paragraph{The cycle restriction.}
-Set \(b=0\) and \(x=0\). Interpolation gives the formal identity
+\section{Realization and the dictionary}\label{sec:circuit}
+This section and the next two prove Theorem~\ref{thm:all}. Here we turn a
+circuit for \(F^*_n\) into a decomposition of every minor table as a sum
+of products of factors with small scopes.
+
+\subsection{Realizing the minor tables}\label{sec:realize}
+
+\begin{lemma}[Realization]\label{lem:realize}
+Let \(F\subseteq K\) be fields, and suppose an SML circuit over \(F\) with
+\(s\) wires computes \(F^*_n\). Let \(n_0\le n\) be even, put
+\(k_0=n_0/2\), and let \(R=K[y_{il}:1\le i\le k_0,\ 1\le l\le n_0]\).
+There is a binary SML circuit over the coefficient ring \(R\), with
+distinguished variables \(x_1,\ldots,x_{n_0}\) and at most
+\(r_n(s+4)\) wires, that computes a polynomial \(G\in R[x]\) with
 \[
- P_d(0,0,Y)=\sum_{\pi\text{ a }d\text{-cycle}}
-      \prod_{i=1}^d Y_{i,\pi(i)}
-      \prod_{(i,j):\,j\ne\pi(i)}(1+Y_{ij}).
+ G(x)=\begin{cases}\det\,(y_{il})_{i\le k_0,\ l\in I(x)},&|I(x)|=k_0,\\
+ 0,&\text{otherwise,}\end{cases}
+ \qquad x\in\{0,1\}^{n_0}.
 \]
-Each summand is the indicator that \(Y\) equals one particular permutation
-matrix. Its degree-\(d\)
-part is the product of the \(d\) positive literals, so the degree-\(d\)
-homogeneous component is the directed Hamiltonian-cycle polynomial \(\HC_d\).
-
-\paragraph{The minor restriction.}
-Extend scalars from \(F\) to an uncountable algebraically closed field
-\(K\) of characteristic two. Fix \(b=1\) and a Boolean vector \(x=\one_I\).
-As a polynomial in \(Y\), the output equals the selected determinant when
-\(|I|=k\), and zero otherwise. Indeed, both sides are multilinear in \(Y\)
-and agree on every Boolean matrix. We can therefore substitute \emph{any}
-\(C\in K^{k\times d}\) into the first \(k\) rows and zero into the rest.
-The resulting truth table on the remaining \(d\) bits is
-\[
- T_C(I)=
- \begin{cases}\det C_{[k],I},& |I|=k,\\0,& |I|\ne k.\end{cases}
-\]
-We call \(T_C\) a \emph{minor table}. Evaluating Lemma~\ref{lem:cut} on the \(x\)-cube expresses every \(T_C\)
-as a sum of \(L\le w+1\) tables. Each summand factors across its listed
-balanced cut. Crucially, the cuts are fixed \emph{before} \(C\) is chosen.
-
-\section{Proof of the arithmetic lower bound}\label{sec:proof}
-Throughout this section and Section~\ref{sec:bias} we use the terminology of
-\cite{hc}: sites, suppliers, flags, sectors, legs, and prices.
-A characteristic \emph{admits ports} if there are bounded-degree regular
-graphs of unbounded order satisfying a common nonlinear Poincar\'e
-inequality in all the spectral metric spaces of that characteristic
-\cite[Section 2]{hc}. The
-inequality bounds the mean squared distance of a random vertex pair by a
-constant times that of a random edge, for every placement of the vertices.
-
-\paragraph{If characteristic two admits ports.}
-By \cite[Theorem 12.2]{hc}, there is an \(\varepsilon>0\) such that every
-arithmetic circuit having \(\HC_d\) as its degree-\(d\) homogeneous component needs more
-than \(2^{d^\varepsilon}\) gates for all large \(d\), over every field of
-this characteristic. The cited bound even applies to limits of coefficient
-vectors, as in border complexity. The cycle restriction exhibits \(\HC_d\)
-as the degree-\(d\) homogeneous component of \(P_d(0,0,Y)\), so it gives the claimed
-wire bound for any \(\delta<\varepsilon/2\).
-
-\paragraph{If characteristic two does not admit ports.}
-We use the minor restriction instead. The following proposition shows that
-no short list of balanced cuts serves every minor table. Together with
-Lemma~\ref{lem:cut}, it bounds the number of wires.
-
-\begin{proposition}[Few cuts cannot serve every minor table]\label{prop:target}
-Suppose characteristic two does not admit ports. Let
-\(U_1,\ldots,U_L\) be balanced cuts, and suppose that for every \(C\in K^{k\times d}\) the table \(T_C\) is a sum of \(L\)
-tables whose \(j\)th summand factors across \(U_j\) and its complement. Then
-\begin{equation}\label{eq:target}
-       \log(2L)=\Omega\!\left(\frac{\sqrt d}{(\log(2d))^{5/4}}\right).
-\end{equation}
-\end{proposition}
-
-\paragraph{Weighted prices.}
-We use the homogeneous spectral prices over \(K\), after adjoining Hilbert
-coordinates \cite[Sections 2 and 3]{hc}.
-Assign weight \(0\) to \(x_i=0\) and weight \(\theta_i\) to \(x_i=1\); we
-call \(\theta_i\) the \emph{bias} of site \(i\). The
-weighted price \(\price_\theta(T)\) is defined through tensor powers: fix the
-total weight on each leg, add the sum of these weights to the sector's
-ordinary price, maximize over sectors, and take the per-copy limit
-\cite[Section 11]{hc}. Write
-\[
-       A(r,t)=r\log(1+e^{t/r}),\qquad S(\theta)=\sum_i A(1,\theta_i).
-\]
-Here \(S(\theta)\) is the transport budget for supplying all bits from the tip.
-
-\paragraph{One bias per site.}
-The proof of Proposition~\ref{prop:target} compares a lower bound on the
-weighted price of one minor table with an upper bound on the price of every
-cut product. The lower bound adapts \cite[Theorem 8.1]{hc}, which places
-several columns at each site with evenly spaced biases. Here each site
-carries a single bit \(x_i\) and gets a single column. Sampling the bias
-together with each insertion makes one column per site suffice. We prove the
-following lemma in Section~\ref{sec:bias}.
-
-\begin{lemma}[One bias per site]\label{lem:bias}
-Fix \(d\) even and unit sites \(u_1,\ldots,u_d\) with barycenter at the tip
-of a metric cone carrying the prices above.
-Let \(M=100\log(2d)\) and sample the \(\theta_i\) independently and
-uniformly from the \(d^2\) midpoints of equal subintervals of \([-M,M]\).
-With probability at least \(3/4\), there is a \(k\times d\) Vandermonde
-matrix \(C\) over \(K\), where \(k=d/2\), for which
-\(\price_\theta(T_C)\ge S(\theta)-B M\log d\), with \(B\) absolute.
+Consequently, for every \(C\in K^{k_0\times n_0}\), the substitution
+\(y\mapsto C\) turns this circuit into an SML circuit over \(K\) whose
+value tensor is the minor table \(T_C\).
 \end{lemma}
 
-\begin{proof}[Proof of Proposition~\ref{prop:target}]
-Put \(m=\log(2d)\) and \(q=\log(2L)\), using natural logarithms.
-The binary lamp certificate
-\cite[Theorems 6.1 and 7.1]{hc} gives \(d\) unit sites \(u_i\) with
-barycenter at the tip of a metric cone, and two suppliers per listed
-cut. Both sides of each cut have at least \(d/3\) sites, which meets the
-certificate's hypothesis that each side have at least \(d/4\).
-Write \(z_{ji}\) for the supplier assigned to site \(i\) by cut \(j\).
-With \(a_{ji}=(1+\norm{z_{ji}}^2-\operatorname{dist}(u_i,z_{ji})^2)/2\),
-the certificate gives
-\begin{equation}\label{eq:lamp}
-  \sum_i a_{ji}\ge c d/\sqrt m,\qquad
-  |a_{ji}|\le\norm{z_{ji}}\le R,\qquad R^2=O(m+q).
+\begin{proof}
+For \(0\le j<r=r_n\) pin \(\zeta=1\) and the digit index to \(j\). The
+resulting circuit computes the multilinear representative \(G_j(x,Y)\) of
+\((x,Y)\mapsto b_j(D(x,Y))\). Let \(w_j=2^j\) for \(j<r-1\) and
+\(w_{r-1}=-2^{r-1}\), as elements of \(F\), and form
+\(\sum_jw_jG_j\) with \(r\) scalar multiplications and \(r-1\) additions.
+A scalar has empty scope, so the circuit is SML and has at most \(r(s+4)\)
+wires. By~\eqref{eq:twos} it takes the value \(D(x,Y)\), reduced to
+\(F\), at every Boolean point \((x,Y)\).
+
+Fix a Boolean \(x\). As polynomials in the entries of \(Y\), both
+\(\sum_jw_jG_j(x,Y)\) and \(D(x,Y)\) are multilinear, and they agree on
+Boolean matrices. Hence they are equal. We may therefore substitute
+arbitrary scalars for the entries of \(Y\), including elements of a
+larger ring.
+Substitute
+\[
+ Y_{[k],[n]}=\begin{pmatrix}(y_{il})&0&0\\0&\mathrm{Id}_{k-k_0}&0\end{pmatrix},
+ \qquad Y_{il}=0\ \ (i>k),
+\]
+where the blocks have \(n_0\), \(k-k_0\) and \(k-k_0\) columns, and pin
+\(x_l=1\) for \(n_0<l\le n_0+k-k_0\) and \(x_l=0\) for
+\(l>n_0+k-k_0\). The entries of \(Y\) and the pinned bits are now
+constants of \(R\), and the scopes in the remaining variables
+\(x_1,\ldots,x_{n_0}\) are subsets of the old scopes, so the circuit is
+SML over \(R\). For Boolean \(x'=(x_1,\ldots,x_{n_0})\) the selected
+columns are \(I(x')\) together with the \(k-k_0\) columns of the identity
+block. Their number is \(k\) exactly when \(|I(x')|=k_0\), and then the
+selected \(k\times k\) matrix is block diagonal with determinant
+\(\det(y_{il})_{i\le k_0,l\in I(x')}\). The last statement follows by
+applying the ring homomorphism \(y\mapsto C\).
+\end{proof}
+
+In characteristic two only the digit \(j=0\) has a nonzero weight, and
+the lemma reduces to the minor restriction used in
+Section~\ref{sec:two}.
+
+\subsection{Small factors from a fixed dictionary}\label{sec:dict}
+Let \(R\) be a commutative ring, and consider a binary SML circuit over
+\(R\) in distinguished variables \(x_1,\ldots,x_\nu\). Its inputs are
+variables and constants of \(R\). For a gate \(v\) let
+\(S_v\subseteq[\nu]\) be its scope and \(P_v\in R[x]\) the polynomial it
+computes. By induction \(P_v\) is multilinear and involves only variables
+of \(S_v\).
+
+\begin{lemma}[Dictionary]\label{lem:dict}
+Let a binary SML circuit with \(S\ge2\) wires over a commutative ring
+\(R\) compute \(P\in R[x_1,\ldots,x_\nu]\), and let \(1\le t\le\nu\) be an
+integer. There exist a finite set \(\cD\) of \emph{labels}, with an
+\emph{assigned scope} \(A_f\subseteq[\nu]\) and a polynomial
+\(P_f\in R[x_{A_f}]\) for each label \(f\), and an identity
+\begin{equation}\label{eq:dict}
+ P=\sum_{\ell=1}^Lc_\ell\prod_{f\in\cP_\ell}P_f(x_{A_f}),
+ \qquad c_\ell\in R,\quad\cP_\ell\subseteq\cD,
 \end{equation}
+such that
+\begin{enumerate}
+\item every label has \(1\le|A_f|\le t\), and for each \(\ell\) the scopes
+\(A_f\), \(f\in\cP_\ell\), partition \([\nu]\);
+\item \(|\cD|\le S^{O(1)}+\nu\) and \(L\le S^{O(\nu/t)}\), with absolute constants.
+\end{enumerate}
+The labels, their scopes and the sets \(\cP_\ell\) depend only on the
+circuit as a labeled graph. In particular, for every ring homomorphism
+\(R\to R'\), applying it to the coefficients of all \(P_f\) and to the
+\(c_\ell\) gives an identity of the same shape for the image of \(P\).
+\end{lemma}
+
+\begin{proof}
+Apply the balancing theorem of Kumar, Oliveira and Saptharishi
+\cite[Theorem 20]{kos}, with subtraction implemented by a scalar
+\(-1\). The balanced SML circuit has \(S^{O(1)}\) gates. In the proof
+of \cite[Lemma 21]{kos}, take individual degree one and stop the expansion
+at gates with at most \(t\) variables in their syntactic scopes. This
+gives \(S^{O(\nu/t)}\) products. In fact, along one expansion history
+the expanded scopes of sizes in \((2^jt,2^{j+1}t]\) are disjoint.
+Each child has at most half the parent scope size, and different
+branches of a product have disjoint scopes. Summing \(\nu/(2^jt)\)
+over \(j\ge0\) gives at most
+\(2\nu/t\) expansions, with \(S^{O(1)}\) choices each. Each surviving
+factor is a gate of the balanced circuit, and the factors in each
+product have disjoint scopes.
+
+The cited constructions balance by summing products over parse-tree
+frontiers, then distribute sums over products. All choices use syntactic
+variable sets. To see explicitly why the identities hold over \(R\),
+replace the input constants by distinct formal coefficient parameters
+\(b_j\) and apply the construction over \(\mathbb Q(b_1,\ldots,b_h)\).
+Its gate and frontier formulas use only addition and multiplication
+and integer scalars, so the resulting identities lie in
+\(\mathbb Z[b_1,\ldots,b_h][x]\). Evaluating the parameters in \(R\)
+gives the same products and scopes.
+
+Use each stopped gate of positive scope as a label, and absorb the
+empty-scope factors into \(c_\ell\). Add one label with polynomial \(1\)
+and scope \(\{i\}\) for every \(i\in[\nu]\), using it in each product
+that omits \(i\). This gives the claimed partitions and counts.
+\end{proof}
+
+\paragraph{The decomposition of the minor tables.}
+Combine Lemmas~\ref{lem:realize} and~\ref{lem:dict}. Let an SML circuit
+with \(s\) wires compute \(F^*_n\) over \(F\subseteq K\), let
+\(n_0\le n\) be even, \(k_0=n_0/2\) and \(1\le t\le n_0\). Write
+\[
+ q=\log(2+s+n),
+\]
+with the natural logarithm. The circuit of Lemma~\ref{lem:realize} has
+\(S\le r_n(s+4)\) wires and \(r_n=O(n\log n)\), so
+\(\log S=O(q)\). Evaluating~\eqref{eq:dict} on the cube after the
+substitution \(y\mapsto C\) gives, for \emph{every}
+\(C\in K^{k_0\times n_0}\),
+\begin{equation}\label{eq:decomp}
+ T_C=\sum_{\ell=1}^LV_{\ell,C},\qquad
+ V_{\ell,C}(x)=c_\ell(C)\prod_{f\in\cP_\ell}P_f^{C}(x_{A_f}),
+\end{equation}
+with
+\begin{equation}\label{eq:counts}
+ \log|\cD|\le C_1q,\qquad\log L\le C_1\,\frac{n_0}{t}\,q
+\end{equation}
+for an absolute constant \(C_1\ge1\). Each \(V_{\ell,C}\) is a product of
+tensors on the disjoint sets of legs \(A_f\). The labels, the scopes
+\(A_f\) and the sets \(\cP_\ell\) do not depend on \(C\). No assumption is
+made on how the scopes meet any grouping of the bits.
+
+\section{The pointwise certificate}\label{sec:geometry}
+Throughout this section the characteristic \(\chi\) does not admit
+ports, and \(\cM=\cM_\chi\) is the class of Section~\ref{sec:classes}.
+In this section every logarithm is written with an explicit base, and
+entropies are in bits. The symbols \(m_0,Q_0,J,\Lambda\) are local to this section.
+
+\begin{theorem}[Pointwise sparse-support certificate]\label{thm:cert}
+There are absolute constants \(c_*,c,C>0\) with the following property.
+Let \(\alpha,\eta>0\) with \(\alpha+\eta<c_*\), and let \(C_\eta\ge1\).
+For every \(d\ge d_0(\alpha,\eta,C_\eta)\) and every family
+\((S_f)_{f\in\cD}\) of subsets of \([d]\) with
+\[
+ 1\le|S_f|\le d^\alpha,\qquad\bigcup_fS_f=[d],\qquad
+ \log_2|\cD|\le C_\eta d^\eta ,
+\]
+there exist a Hadamard cone in \(\cM\), unit centered points
+\(u_1,\ldots,u_d\) in it, and one point \(Z_f\) for each \(f\in\cD\), such
+that
+\begin{equation}\label{eq:cert}
+ \ip{u_i}{Z_f}\ge c\sqrt{\log_2d}\quad\text{whenever }i\in S_f,
+ \qquad\norm{Z_f}^2\le C\log_2(2d|\cD|).
+\end{equation}
+\end{theorem}
+
+The point \(Z_f\) depends on the label \(f\) alone. The first inequality
+holds for every incidence \(i\in S_f\) separately, not on average.
+
+\begin{corollary}[Shorter transport]\label{cor:transport}
+In the setting of Theorem~\ref{thm:cert}, put \(m=\log(2d)\) and
+\(Q=\log(2d|\cD|)\), with natural logarithms. There are \(\tau>0\) and
+\[
+ \varepsilon=c'\,m/Q\in(0,\tfrac12],
+\]
+with \(c'>0\) absolute, such that \(d(u_i,\tau Z_f)\le1-\varepsilon\)
+whenever \(i\in S_f\).
+\end{corollary}
+
+\begin{proof}
+For \(d\ge2\) we have \(\log_2d\ge m/2\), so~\eqref{eq:cert} gives
+\(\ip{u_i}{Z_f}\ge c_a\sqrt m\) and \(\norm{Z_f}^2\le C_bQ\) with absolute
+constants \(c_a\le1\le C_b\). Take \(\tau=c_a\sqrt m/(C_bQ)\).
+By~\eqref{eq:conelaw},
+\[
+ d(u_i,\tau Z_f)^2\le1-2\tau c_a\sqrt m+\tau^2C_bQ
+  =1-\frac{c_a^2\,m}{C_b\,Q}.
+\]
+Since \(m\le Q\), the right side lies in \([0,1)\), and
+\(\sqrt{1-y}\le1-y/2\) gives the claim with \(c'=c_a^2/(2C_b)\).
+\end{proof}
+
+The rest of the section proves Theorem~\ref{thm:cert}. We encode a site as
+the increment of one lamp of a lamp graph, as in \cite[Section 7]{hc}.
+In \cite{hc} the report on a word is assembled by hashing the sides of
+balanced cuts; here the report is simply a label \(f\), and incrementing
+a lamp by an element of \(S_f\) is cheap while the report is \(f\).
+
+\subsection{Tools}
+For a law \(\mu\) on ordered pairs of a finite set \(V\) and a placement
+\(z\colon V\to X\) in a metric space, put
+\(\cE_\mu(z)=\E_{(u,v)\sim\mu}d(z_u,z_v)^2\). Write \(H_\mu(Y\mid X)\)
+for the conditional entropy of the second coordinate of a
+\(\mu\)-distributed pair given the first.
+\begin{enumerate}
+\item[(E1)] \emph{Entropy comparison} \cite[Corollary 5.2]{hc}. Let
+\(\nu\) and \(\mu\) be laws on ordered pairs of a finite set, with
+\(\mu\) symmetric, and let \(\beta\ge0\). If
+\(\cE_\nu(z)\le\beta\,\cE_\mu(z)\) for every placement \(z\) in every
+space of \(\cM\), then
+\(H_\nu(Y\mid X)\le C_E(1+\beta)(1+H_\mu(Y\mid X))\), with an absolute
+constant \(C_E\ge1\).
+\item[(E2)] \emph{Coordinate exchange} \cite[Equation (7.1)]{hc}. Let
+\((V_r,V'_r)\), \(1\le r\le J\), be independent exchangeable pairs, and
+let \(V^{(r)}\) be \(V\) with coordinate \(r\) replaced by \(V'_r\). For
+every map \(T\) into a Hadamard space,
+\(\E\,d(T(V),T(V'))^2\le\sum_r\E\,d(T(V),T(V^{(r)}))^2\).
+\item[(E3)] \emph{Metric projections and barycenters} \cite{bh,sturm}.
+In a Hadamard space each nonempty closed convex set \(K\) has a unique
+nearest point \(v\) to any \(w\), with
+\(d(w,p)^2\ge d(w,v)^2+d(v,p)^2\) for \(p\in K\).
+A finite family of points has a unique barycenter minimizing the mean
+squared distance. It lies in every closed ball containing the family.
+\item[(E4)] \emph{Tangent cones} \cite[Section 7.4]{hc}, \cite{bh}. For
+a point \(o\) of a space \(X\in\cM\), the completed tangent cone at
+\(o\) is a Hadamard cone in \(\cM\). The logarithm map \(\log_o\) from
+\(X\) to it preserves the distance to \(o\) as the norm and does not
+increase distances. If \(o\) is the barycenter of the uniform measure on
+points \(v_1,\ldots,v_d\), then the \(\log_o(v_i)\) are centered.
+\end{enumerate}
+In \cite[Corollary 5.2]{hc} the law \(\mu\) need not be symmetric and is
+symmetrized in the conclusion; no common marginal of \(\nu\) and \(\mu\)
+is required. The constant \(C_E\) is absolute because the constant of
+\cite[Theorem 5.1]{hc} is the same for every class without ports.
+
+\subsection{Entropy placement}
+
+\begin{lemma}[Entropy placement]\label{lem:placement}
+Let \(G\) be a finite connected graph with vertex set \(V\), and let
+every edge \(e\) have a \emph{budget} \(c_e\in[1,\bar Q]\). Suppose that
+for every vertex \(u\) there is a prefix code for the neighbors of \(u\)
+in which the neighbor \(v\) has a codeword of at most \(c_{uv}\) bits.
+Let \(\nu\) be a law on ordered pairs of \(V\). There is a placement
+\(z\) of \(V\) in a space of \(\cM\) such that
+\[
+ d(z_u,z_v)^2\le c_{uv}\ \text{ on every edge},\qquad
+ \cE_\nu(z)\ge c_P\,H_\nu(Y\mid X)-\bar Q ,
+\]
+where \(c_P>0\) is an absolute constant.
+\end{lemma}
+
+\begin{proof}
+Call a placement \emph{feasible} if it satisfies the edge constraints,
+and let \(B\) be the supremum of \(\cE_\nu\) over feasible placements.
+Connectedness bounds all distances in a feasible placement, so
+\(B<\infty\). Let \(c_P=1/(4C_E)\). If \(G\) has a single vertex there is
+nothing to prove, so assume it has an edge.
+
+Suppose first that \(B=0\). Every placement in \(\cM\) becomes feasible
+after rescaling, so \(\cE_\nu\) vanishes on all placements. Let \(\mu\)
+be the uniform law on the oriented edges. Then (E1) with \(\beta=0\)
+gives \(H_\nu(Y\mid X)\le C_E(1+H_\mu(Y\mid X))\le C_E(1+\bar Q)\), where
+the code bounds the conditional entropy. Hence
+\(c_PH_\nu(Y\mid X)-\bar Q\le0\) and any constant placement will do.
+
+Now let \(B>0\). The squared-distance tables \((d(z_u,z_v)^2)_{u,v}\) of
+placements in \(\cM\) form a convex cone: rescale two placements by
+\(\sqrt\lambda\) and \(\sqrt{1-\lambda}\) and take their \(\ell_2\)
+product. Let \(\mathcal T_1\) be the set of tables with \(\cE_\nu=1\). It
+is convex and nonempty. Write \(d_e^2\) for the entry of a table at an
+edge \(e\). Every table of \(\mathcal T_1\) has
+\(\max_ed_e^2/c_e\ge1/B\). Indeed this maximum is positive, because the
+graph is connected and the table is not zero, and if it were smaller
+than \(1/B\) a rescaling would be feasible with \(\cE_\nu>B\). The
+function \(\sum_ew_ed_e^2/c_e\) is linear in the table
+and in the weight vector \(w\), which ranges over the compact simplex of
+probability vectors on the edges. By the minimax theorem \cite{sion}
+there is a probability vector \(w\) with
+\[
+ \sum_ew_e\,d_e^2/c_e\ \ge\ 1/B\qquad\text{for every table of }\mathcal T_1 .
+\]
+Let \(\mu\) give the edge \(e\) the mass \((w_e/c_e)/W\), with
+\(W=\sum_ew_e/c_e\), split equally between its two orientations. Its mean
+budget is \(\bar c=\sum_e\mu(e)c_e=1/W\in[1,\bar Q]\), and the display
+says \(\cE_\mu\ge\bar c/B\) on \(\mathcal T_1\). By homogeneity,
+\[
+ \cE_\nu(z)\le\frac{B}{\bar c}\,\cE_\mu(z)
+ \qquad\text{for every placement }z\text{ in }\cM .
+\]
+The code gives \(H_\mu(Y\mid X)\le\E_\mu c_e=\bar c\). Now (E1) yields
+\[
+ H_\nu(Y\mid X)\le C_E\Bigl(1+\frac B{\bar c}\Bigr)(1+\bar c)
+   \le C_E\bigl(2\bar Q+2B\bigr),
+\]
+using \(1\le\bar c\le\bar Q\). Hence
+\(B\ge H_\nu(Y\mid X)/(2C_E)-\bar Q\). Since \(B>0\), there is a feasible
+placement with \(\cE_\nu\ge B/2\ge c_PH_\nu(Y\mid X)-\bar Q/2\).
+\end{proof}
+
+\subsection{The sparse-list lamp graph}\label{sec:graph}
+Fix \(d\ge2\) and a family \((S_f)_{f\in\cD}\) of nonempty subsets of
+\([d]\), each of size at most \(t\), that covers \([d]\). Identify
+\([d]\) with the cyclic group \(\Z/d\Z\). Let \(\Lambda\ge1\) be an
+integer and put
+\[
+ m_0=\log_2d,\qquad Q_0=\lceil\log_2(2d|\cD|)\rceil,\qquad
+ J=\lceil\Lambda Q_0/m_0\rceil,\qquad\kappa=\lceil\log_2J\rceil .
+\]
+A \emph{state} \((g,f)\) consists of an array
+\(g\in(\Z/d\Z)^J\) of \(J\) \emph{lamps} and a \emph{report}
+\(f\in\cD\cup\{f_0\}\), where \(f_0\) is a reference label with
+\(S_{f_0}=\emptyset\). There are three kinds of moves.
+\begin{itemize}
+\item Replace the report by any other one. Budget
+\(c_{\rm rep}=Q_0+2\).
+\item Add any nonzero group element to one lamp. Budget
+\(c_{\rm arb}=\lceil m_0\rceil+\kappa+2\).
+\item In a state with report \(f\), add or subtract an element of
+\(S_f\) at one lamp. Budget
+\(c_{\rm chp}=\lceil\log_2(2t)\rceil+\kappa+2\).
+\end{itemize}
+Each move can be undone by a move of the same kind and budget. The
+\emph{lamp graph} has the states as vertices and an edge between two
+distinct states when some move leads from one to the other; the budget of
+the edge is the smallest budget of such a move. The graph is connected
+via report moves and arbitrary lamp additions. A move
+is described by two bits for its kind, followed by the new report
+(\(\lceil\log_2(|\cD|+1)\rceil\le Q_0\) bits), or by the lamp address
+(\(\kappa\) bits) and the group element (\(\lceil m_0\rceil\) bits), or
+by the lamp address and a signed index in the list \(S_f\)
+(\(\lceil\log_2(2t)\rceil\) bits). Describing a neighbor by a cheapest
+move to it gives a prefix code as in Lemma~\ref{lem:placement}. All
+budgets lie in \([1,3Q_0]\) once \(d\ge32\Lambda\). Indeed
+\(Q_0\ge m_0+1\ge2\), and \(J\le2\Lambda Q_0\) because \(m_0\ge1\), so
+\(\kappa\le\log_2\Lambda+\log_2Q_0+2\le\log_2\Lambda+Q_0+1\). With
+\(t\le d\) this gives
+\(c_{\rm chp}\le c_{\rm arb}+1\le2Q_0+\log_2\Lambda+4\), and
+\(\log_2\Lambda+4\le m_0\le Q_0\) when \(d\ge32\Lambda\).
+
+The demand law \(\nu\) joins \((g,f_0)\) to \((g',f_0)\) for independent
+uniform arrays \(g,g'\). Its conditional entropy is \(Jm_0\ge\Lambda Q_0\).
+Lemma~\ref{lem:placement} gives a placement \(z(g,f)\) in a space of
+\(\cM\) that respects all budgets and has
+\(\E\,d(z(g,f_0),z(g',f_0))^2\ge c_PJm_0-3Q_0\). Thus, if
+\(\Lambda\ge6/c_P\) and \(d\ge32\Lambda\),
+\begin{equation}\label{eq:spread}
+ \E_{g,g'}\,d\bigl(z(g,f_0),z(g',f_0)\bigr)^2\ \ge\ \tfrac12c_P\,Jm_0 .
+\end{equation}
+The graph is enormous, but it is only a device in the existence proof.
+
+\subsection{Common suppliers by projection}
+Write \(\cD_i=\{f\in\cD:i\in S_f\}\). A cheap move with increment \(i\)
+is available at every report in \(\cD_i\). We use this fact on their
+closed convex hull to obtain one supplier per report.
+
+\begin{lemma}[Common suppliers]\label{lem:common}
+Set \(\Lambda=\lceil64/c_P\rceil\) and \(c_1=c_P/8\).
+If \(d\ge32\Lambda\) and \(c_{\rm chp}\le c_1m_0/4\), there exist a
+Hadamard cone in \(\cM\), centered points \(U_1,\ldots,U_d\) with
+\(\sum_i\norm{U_i}^2=d\), and points \(Z_f\) for \(f\in\cD\) such that
+\begin{equation}\label{eq:common}
+ \sum_i\min_{f\in\cD_i}\ip{U_i}{Z_f}\ge c_2 d\sqrt{m_0},
+ \qquad \norm{Z_f}^2\le8Q_0 ,
+\end{equation}
+where \(c_2=\sqrt{c_1}/4\).
+\end{lemma}
+
+\begin{proof}
+Let \(X\in\cM\) contain the lamp placement and put \(G=(\Z/d\Z)^J\).
+Work in the finite product \(X^G\) with metric
+\(D(v,w)^2=\E_g d_X(v(g),w(g))^2\), which belongs to \(\cM\) by
+product and rescaling closure. Each report gives a point
+\(p_f=(z(g,f))_{g\in G}\). The report moves put all these points in the
+closed ball \(B\) about \(p_{f_0}\) of radius \(\rho=\sqrt{Q_0+2}\).
+For each \(i\), let \(K_i\subseteq B\) be the closed convex hull of
+\(\{p_f:f\in\cD_i\}\), a nonempty set.
+
+Choose \(o\in B\) minimizing \(E(w)=d^{-1}\sum_i D(w,K_i)^2\) on \(B\).
+Indeed \(E\) is continuous and convex by convexity of distance in a
+Hadamard space. Its near-minimum sublevels in \(B\) are bounded, closed
+and convex. As the levels decrease to the infimum, the projections of a
+fixed point onto these sets are Cauchy by (E3). Their limit belongs to
+every sublevel. Write \(v_i\) for the projection of \(o\)
+onto \(K_i\), and set \(\sigma^2=E(o)\). The barycenter \(b\) of the
+\(v_i\) lies in \(B\), and
+\[
+ E(o)\le E(b)\le d^{-1}\sum_i D(b,v_i)^2
+       \le d^{-1}\sum_i D(o,v_i)^2=E(o).
+\]
+Uniqueness of the barycenter gives \(o=b\).
+
+To bound \(\sigma\), take independent uniform \(g,g'\in G\).
+By~\eqref{eq:spread}, the triangle inequality in \(L^2\), and
+\(D(o,p_{f_0})\le\rho\),
+\[
+ \bigl(\E d_X(o(g),o(g'))^2\bigr)^{1/2}
+ \ge\sqrt{c_PJm_0/2}-2\rho\ge\sqrt{c_1Jm_0}.
+\]
+Here \(\rho^2\le2Q_0\le 2Jm_0/\Lambda\).
+For a lamp \(r\) and a site \(i\in\Z/d\Z\), the coordinate permutation
+\((T_{r,i}w)(g)=w(g+e_r i)\) is an isometry, where \(e_r i\) adds \(i\)
+at lamp \(r\) only. For uniform independent \(r,i\) this increment
+resamples that lamp independently. Applying (E2) to \(g\mapsto o(g)\)
+therefore gives \(\E_{r,i}D(o,T_{r,i}o)^2\ge c_1m_0\).
+For \(f\in\cD_i\), cheap moves give
+\(D(p_f,T_{r,i}p_f)\le\sqrt{c_{\rm chp}}\). The displacement of an
+isometry is convex and continuous, so the same holds for \(v_i\in K_i\).
+The triangle inequality through \(v_i,T_{r,i}v_i\) gives
+\[
+ \sqrt{c_1m_0}\le
+ \bigl(\E_{r,i}D(o,T_{r,i}o)^2\bigr)^{1/2}
+ \le 2\sigma+\sqrt{c_{\rm chp}}.
+\]
+In particular \(\sigma\ge c_2\sqrt{m_0}\).
+
+In the tangent cone at \(o\) take \(U_i=\log_o(v_i)/\sigma\) and
+\(Z_f=\log_o(p_f)\). By (E4) the cone belongs to \(\cM\), the \(U_i\)
+are centered, and \(\sum_i\norm{U_i}^2=d\). Also
+\(\norm{Z_f}\le2\rho\). For every \(f\in\cD_i\), projection onto \(K_i\)
+gives \(D(o,p_f)^2\ge D(o,v_i)^2+D(v_i,p_f)^2\). Contraction of
+\(\log_o\) thus gives
+\(\ip{U_i}{Z_f}\ge D(o,v_i)^2/\sigma\) for every such \(f\).
+Taking the minimum at each site and summing gives at least \(d\sigma\), proving
+\eqref{eq:common}.
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:cert}}
+Let \(\Lambda\) and \(c_1\) be the absolute constants of
+Lemma~\ref{lem:common}, and set \(c_*=c_1/8\). Let \(\alpha,\eta\),
+\(C_\eta\) and the family \((S_f)_{f\in\cD}\) be as in the theorem, and
+\(t=\lfloor d^\alpha\rfloor\).
+
+\emph{Translates.}
+Let \(\cD'=\cD\times\Z/d\Z\), with \(S_{(f,h)}=S_f+h\). This family has
+\(d|\cD|\) labels, its sets have at most \(t\) elements, and it covers
+\([d]\). Its parameters are \(m_0=\log_2d\) and
+\(Q_0'=\lceil\log_2(2d^2|\cD|)\rceil\le2\lceil\log_2(2d|\cD|)\rceil\).
+For large \(d\) we have \(Q_0'\le8C_\eta d^\eta\), hence
+\(J\le2\Lambda Q_0'\le16\Lambda C_\eta d^\eta\) and
+\[
+ c_{\rm chp}\le\log_2(2t)+\log_2J+4
+   \le(\alpha+\eta)\,m_0+\log_2(\Lambda C_\eta)+9 .
+\]
+Since \(\alpha+\eta<c_1/8\), this is at most \(c_1m_0/4\) for all
+\(d\ge d_0(\alpha,\eta,C_\eta)\); we also take \(d_0\ge32\Lambda\).
+Lemma~\ref{lem:common}, applied to \(\cD'\), gives a Hadamard cone
+\(Y_0\in\cM\), centered points \(U_i\) with \(\sum_i\norm{U_i}^2=d\), and
+points \(Z_{(f,h)}\) with \(\norm{Z_{(f,h)}}^2\le8Q_0'\) and
+\begin{equation}\label{eq:minsum}
+ \sum_{i\in\Z/d\Z}\beta_i\ \ge\ c_2\,d\sqrt{m_0},\qquad
+ \beta_i:=\min\bigl\{\ip{U_i}{Z_{(f',h')}}:\ i\in S_{f'}+h'\bigr\}.
+\end{equation}
+
+\emph{Symmetrization.}
+In the \(\ell_2\) product \(Y\) of \(d\) copies of \(Y_0\), indexed by
+\(h\in\Z/d\Z\), let
+\[
+ u_i=d^{-1/2}\,(U_{i+h})_h,\qquad Z_f=d^{-1/2}\,(Z_{(f,h)})_h .
+\]
+Then \(Y\) is a Hadamard cone in \(\cM\). Each \(u_i\) has
+\(\norm{u_i}^2=d^{-1}\sum_h\norm{U_{i+h}}^2=1\). In coordinate \(h\) the
+points \(u_i\) are a rescaled reordering of the \(U_i\), so the \(u_i\)
+are centered. Moreover
+\(\norm{Z_f}^2\le8Q_0'\le16\lceil\log_2(2d|\cD|)\rceil
+\le32\log_2(2d|\cD|)\). Finally let
+\(i\in S_f\). For every \(h\) we have \(i+h\in S_f+h=S_{(f,h)}\), so the
+label \((f,h)\) is admissible in the minimum defining \(\beta_{i+h}\).
+Therefore
+\[
+ \ip{u_i}{Z_f}=\frac1d\sum_h\ip{U_{i+h}}{Z_{(f,h)}}
+   \ \ge\ \frac1d\sum_h\beta_{i+h}\ \ge\ c_2\sqrt{m_0}
+\]
+by~\eqref{eq:minsum}. This proves~\eqref{eq:cert}. \qed
+
+\section{Proof of Theorem~\ref{thm:all}}\label{sec:proof-all}
+
+\paragraph{If the characteristic admits ports.}
+Proposition~\ref{prop:ports} gives the bound, with any
+\(\delta_\chi<\varepsilon/2\).
+
+\paragraph{If the characteristic does not admit ports.}
+Fix a rational \(\alpha\) with
+\[
+ 0<\alpha\le1,\qquad\tfrac43\alpha<c_* ,
+\]
+where \(c_*\) is the absolute constant of Theorem~\ref{thm:cert}. From here on
+logarithms are natural. For a
+large even \(n\) let \(d\) be the largest even integer with
+\(d\lceil d^{\alpha/2}\rceil\le n\), and put
+\[
+ a=\lceil d^{\alpha/2}\rceil,\qquad n_0=da,\qquad k_0=n_0/2,\qquad
+ t=\lfloor d^\alpha\rfloor,\qquad m=\log(2d),\qquad M=100\log n_0 .
+\]
+Then \(n_0\le n<2n_0\) for large \(n\), and \(N\le20\,d^{2+\alpha}\). Let \(F\) have characteristic \(\chi\),
+let \(K\supseteq F\) be uncountable and algebraically closed, and suppose
+an SML circuit over \(F\) with \(s\) wires computes \(F^*_n\). Assume
+\begin{equation}\label{eq:assume}
+ s\le\exp(d^{\alpha/3}).
+\end{equation}
+We derive a contradiction for large \(d\). Let \(q=\log(2+s+n)\); then
+\(m\le q\le2d^{\alpha/3}\) for large \(d\).
+
+\paragraph{The decomposition and the sites.}
+Section~\ref{sec:dict} provides the decomposition~\eqref{eq:decomp} of
+\(T_C\) for every \(C\in K^{k_0\times n_0}\), with the
+counts~\eqref{eq:counts}. Identify the \(n_0\) distinguished bits with the
+\emph{slots} \((i,j)\), \(i\in[d]\), \(j\in[a]\), in lexicographic order.
+This grouping into \(d\) \emph{sites} serves only to place the legs; the
+scopes \(A_f\) may split the slots of a site in any way. For a label
+\(f\) let
+\[
+ S_f=\{i\in[d]:\ (i,j)\in A_f\text{ for some }j\}.
+\]
+Then \(1\le|S_f|\le|A_f|\le t\le d^\alpha\). The padding labels of
+Lemma~\ref{lem:dict}, with scopes \(\{(i,j)\}\), show that the \(S_f\)
+cover \([d]\). By~\eqref{eq:counts}
+and~\eqref{eq:assume}, \(\log_2|\cD|\le4C_1d^{\alpha/3}\). So
+Theorem~\ref{thm:cert} and Corollary~\ref{cor:transport} apply with
+\(\eta=\alpha/3\), since \(\alpha+\eta=\tfrac43\alpha<c_*\). They give a
+Hadamard cone \(Y\in\cM\), unit centered sites \(u_1,\ldots,u_d\),
+points \(Z_f\) and a \(\tau>0\) with
+\begin{equation}\label{eq:short}
+ d(u_i,\tau Z_f)\le1-\varepsilon\quad(i\in S_f),\qquad
+ \varepsilon=\frac{c'm}{Q}\ge\frac{c_3\,m}{q},\qquad
+ Q=\log(2d|\cD|)\le(1+C_1)q .
+\end{equation}
+Pass to the priced cone \(Y\times\ell_2\) of Section~\ref{sec:classes}.
+Place slot \((i,j)\) at \(u_i\), give it the bias \(\theta_j\)
+of~\eqref{eq:grid}, and let \(\cS=d\sum_jA(1,\theta_j)\). Everything so
+far was fixed without reference to a matrix \(C\).
 
 \paragraph{A lower bound on the price of one minor table.}
-Draw the biases \(\theta_i\) as in Lemma~\ref{lem:bias}, with
-\(M=100m\). By that lemma, there is an absolute constant \(B\) such that
-\begin{equation}\label{eq:near}
- \Pr_\theta\!\left[\exists\, C:\ \price_\theta(T_C)\ge
-                    S(\theta)-B M\log d\right]\ge 3/4 .
+By Theorem~\ref{thm:star} there is a \(k_0\times n_0\) Vandermonde matrix
+\(C\) with \(\lamext(C)\ge\cS-C_0M(1+d/a)\log n_0\). Its columns are
+indexed by the slots in lexicographic order, and any \(k_0\) of them are
+independent. Lemma~\ref{lem:sign} and \(\log n_0\le2m\) give
+\begin{equation}\label{eq:lower}
+ \price(T_C)\ \ge\ \cS-d\log2-C_2\,m^2\Bigl(1+\frac da\Bigr).
 \end{equation}
-\paragraph{An upper bound on the price of each cut product.}
-Place the suppliers for cut \(j\) at a fraction \(\tau\) of their displacement
-from the tip. Each factor has zero ordinary price at its own supplier.
-Sending bit \(i\) the distance \(r_{ji}=\operatorname{dist}(u_i,\tau z_{ji})\)
-costs at most \(A(r_{ji},\theta_i)\). Sharing the summand index costs
-\(O(\sqrt m\,q)\). Combining these with \cite[Lemmas 2.2 and 11.1]{hc}
-gives, for \emph{every} \(C\),
+
+\paragraph{An upper bound on the price of every product.}
+Fix this \(C\) and a nonzero summand \(V_{\ell,C}\)
+of~\eqref{eq:decomp}. Place every leg \((i,j)\in A_f\) at the point
+\(\tau Z_f\), for each \(f\in\cP_\ell\). The tensor \(V_{\ell,C}\) is a
+product of tensors on the sets of legs \(A_f\), and all legs of the
+factor \(f\) sit at one point, so its ordinary price at this placement is
+zero by (P1). Now move each leg \((i,j)\in A_f\) to its site \(u_i\).
+Since \(i\in S_f\), it moves a distance \(r_{if}\le1-\varepsilon\)
+by~\eqref{eq:short}. By (W3) and the monotonicity of \(A\) in \(r\),
+\[
+ \price(V_{\ell,C})\le\sum_{f\in\cP_\ell}\sum_{(i,j)\in A_f}A(r_{if},\theta_j)
+  \le d\sum_{j=1}^aA(1-\varepsilon,\theta_j).
+\]
+By~\eqref{eq:entropy-lb}, every bias with \(|\theta_j|\le1\) has
+\(A(1,\theta_j)-A(1-\varepsilon,\theta_j)\ge c_A\varepsilon\); the other
+differences are nonnegative. The grid~\eqref{eq:grid} has spacing
+\(2M/a\), so at least \(\lfloor a/M\rfloor\ge a/(2M)\) of its points lie
+in \([-1,1]\) once \(a\ge2M\), which holds for large \(d\). With
+\(M\le200m\) and~\eqref{eq:short},
+\begin{equation}\label{eq:product-upper}
+ \price(V_{\ell,C})\ \le\ \cS-c_A\,\varepsilon\,\frac{da}{2M}
+  \ \le\ \cS-c_4\,\frac{da}{q}.
+\end{equation}
+No Taylor expansion, bias sampling or union bound over the summands is
+needed: the bound holds for every summand because~\eqref{eq:short} holds
+for every incidence.
+
+The \(L\) summands have the same weighted format, with legs at the sites
+\(u_1,\ldots,u_d\). By (W2), \eqref{eq:diag} and~\eqref{eq:counts},
 \begin{equation}\label{eq:upper}
- \price_\theta(T_C)\le
-  \max_{j\le L}\sum_i A(r_{ji},\theta_i)+O(\sqrt m\,q).
+ \price(T_C)\ \le\ \cS-c_4\,\frac{da}{q}+C_5\sqrt m\,\frac{da\,q}{t}.
 \end{equation}
 
-\paragraph{Choosing the biases and the displacement.}
-Suppose \(q\le\eta\sqrt d/m^{5/4}\) for a sufficiently small absolute
-\(\eta>0\). We seek biases for which some minor table attains the lower
-bound in \eqref{eq:near} and every listed cut gives a transport saving. Write
-\(h(t)=\partial_r A(1,t)\) and \(\psi(t)=(1+t^2)e^{-|t|/2}\).
-On \(1/2\le r\le2\) both \(|\partial_r A(r,t)|\) and
-\(|\partial_r^2 A(r,t)|\) are bounded by \(C_0\psi(t)\). Indeed, the first
-derivative is the binary entropy in nats at the logistic probability
-\((1+e^{-t/r})^{-1}\), and the second is
-\((t/r)^2 e^{t/r}/(r(1+e^{t/r})^2)\). The entropy is bounded below
-near zero. The grid has spacing \(2M/d^2=o(1)\), and \(\psi,\psi^2\)
-have integrable, eventually decreasing tails. Thus
+\paragraph{The contradiction.}
+Comparing~\eqref{eq:lower} with~\eqref{eq:upper} and dividing by
+\(da/q\),
+\begin{equation}\label{eq:master}
+ c_4\ \le\ \log2\cdot\frac qa
+   +C_2\,m^2\Bigl(\frac q{da}+\frac q{a^2}\Bigr)
+   +C_5\,\frac{q^2\sqrt m}{t}.
+\end{equation}
+With \(a\ge d^{\alpha/2}\), \(t\ge d^\alpha/2\) and
+\(q\le2d^{\alpha/3}\), the four terms on the right are
 \[
- \E h(\theta_i)\ge c/m,\qquad
- \E h(\theta_i)^2+\E\psi(\theta_i)\le C_1/m.
+ O\bigl(d^{-\alpha/6}\bigr),\qquad O\bigl(m^2d^{-1}\bigr),\qquad
+ O\bigl(m^2d^{-2\alpha/3}\bigr),\qquad O\bigl(\sqrt m\,d^{-\alpha/3}\bigr).
 \]
-We may take \(R\ge1\) in \eqref{eq:lamp}. For fixed \(j\), by independence
-and \eqref{eq:lamp}, the sum \(\sum_i a_{ji}h(\theta_i)\) has mean at least
-\(c_1d/m^{3/2}\), variance at most \(O(dR^2/m)\), and centered summands
-bounded by \(O(R)\). Set \(t_0=c_1d/(2m^{3/2})\). Falling below \(t_0\)
-requires a downward deviation of at least \(t_0\). Bernstein's inequality
-bounds its probability by
+All tend to zero, which contradicts~\eqref{eq:master} for large \(d\).
+Hence~\eqref{eq:assume} fails:
 \[
- \exp\!\left[-\Omega\!\left(\frac{t_0^2}{dR^2/m+Rt_0}\right)\right]
- \le \exp\!\left[-\Omega\!\left(\frac{d}{m^2(m+q)}\right)\right].
+ \log s>d^{\alpha/3}\ \ge\ (N/20)^{\alpha/(6+3\alpha)} .
 \]
+This is~\eqref{eq:all-quant}, and any
+\(\delta_\chi<\alpha/(6+3\alpha)\) works in this case.
 
-Since \(m^2q(m+q)=o(d)\), the union of these bad events over \(L\)
-cuts has probability \(o(1)\). Markov's inequality also gives
-\(\sum_i\psi(\theta_i)\le C_2d/m\) with probability at least \(7/8\)
-for a suitable \(C_2\). Since \((1-o(1))+7/8+3/4>2\), these two events and
-the event in \eqref{eq:near} hold simultaneously for some biases. Fix such
-biases and a matrix \(C\) witnessing \eqref{eq:near}.
+\paragraph{Conclusion.}
+Whether \(\chi\) admits ports is a fixed fact independent of \(n\), and
+each case applies to every sufficiently large even \(n\). This proves
+Theorem~\ref{thm:all}, relative to the statements imported from
+\cite{hc}. The constant \(\alpha\) is absolute because \(c_*\) is, so
+the exponent in~\eqref{eq:all-quant} is the same for all characteristics
+without ports. The exponent in a characteristic with ports may depend on
+the characteristic.
 
-Set \(\tau=m^{3/4}/\sqrt d\), so \(\tau R=o(1)\).
-The cone law gives
-\[
- r_{ji}^2=1-2\tau a_{ji}+\tau^2\norm{z_{ji}}^2,\qquad
- r_{ji}=1-\tau a_{ji}+O(\tau^2R^2).
-\]
-Taylor expansion on \(1/2\le r_{ji}\le2\) and the two simultaneous bounds
-on the biases yield, for every \(j\),
-\begin{align*}
- \sum_i A(r_{ji},\theta_i)
- &\le S(\theta)-\tau\sum_i a_{ji}h(\theta_i)
-              +O\!\left(\tau^2R^2\sum_i\psi(\theta_i)\right)\\
- &\le S(\theta)-c_2\frac{\sqrt d}{m^{3/4}}
-              +O\!\left(\sqrt m\,(m+q)\right).
-\end{align*}
-In \eqref{eq:upper}, the errors depending on \(q\) are
-\(O(\sqrt m\,q)\le O(\eta\sqrt d/m^{3/4})\). Choose \(\eta\) small
-enough to absorb them into half the saving. The remaining
-\(O(m^{3/2})\) error and the allowed \(O(M\log d)\) deficit in
-\eqref{eq:near} are both \(o(\sqrt d/m^{3/4})\). The lower bound
-\eqref{eq:near} and the upper bound \eqref{eq:upper} on the price of this
-\(T_C\) now contradict each other. Hence \(q>\eta\sqrt d/m^{5/4}\), which
-is \eqref{eq:target}.
+\subsection{Probabilistic circuits}\label{sec:prob-sim}
+A \emph{probabilistic circuit} over Boolean variables is a directed
+acyclic graph with one output. Each input unit computes a real function
+of a single variable. Each other unit computes the product of its
+children, or a sum \(\sum_cw_c\,c\) of its children \(c\) with real
+weights \(w_c\). The scope of a unit is the set of variables of the input
+units that reach it. The circuit is \emph{decomposable} if the children
+of every product unit have pairwise disjoint scopes, and \emph{monotone}
+if all weights and input functions are nonnegative. Its size is the
+number of edges. It computes a real function on the Boolean cube.
+
+\begin{proof}[Proof of Corollary~\ref{cor:pc}]
+On \(\{0,1\}\), a real function \(g\) of one variable \(z\) agrees with
+the affine polynomial \(g(0)(1-z)+g(1)z\). Replace each input unit by
+this polynomial, each weighted sum by scalar multiplications and binary
+additions, and each product by binary multiplications. Decomposability
+makes every multiplication syntactically multilinear, and shared units
+stay shared. A circuit with \(s\) edges thus yields a syntactically
+multilinear circuit over \(\mathbb R\) with \(O(s+1)\) wires. Its output
+is a multilinear polynomial that agrees with \(c\,f^*_n\) on the cube,
+for some real \(c\ne0\), so it equals \(c\,F^*_n\). Multiplying by
+\(1/c\) and applying Theorem~\ref{thm:all} with \(\chi=0\) gives the
+bound.
 \end{proof}
 
-\begin{proof}[Conclusion of Theorem~\ref{thm:main}]
-Lemma~\ref{lem:cut} gives \(L\le w+1\). If characteristic two does not
-admit ports, the minor
-restriction meets the hypothesis of Proposition~\ref{prop:target}, so
-\eqref{eq:target} and \(N=d^2+d+1\) imply
+\section{The single-cycle predicate}\label{sec:cycle-only}
+
+\begin{proof}[Proof of Corollary~\ref{cor:cycle}]
+We realize the multilinear representative \(F_n^*\) as a projection of
+\(\HC_m\) in which each variable labels a single arc. Write
+\(X_1,\ldots,X_N\) for the inputs of \(f_n^*\), and \(X^A=\prod_{i\in A}X_i\).
+Over every field, Boolean interpolation gives
 \[
-        \log w=\Omega\!\left(\frac{N^{1/4}}{(\log N)^{5/4}}\right).
+ F_n^*(X)
+ =\sum_{A:\,f_n^*(\one_A)=1} X^A\prod_{i\notin A}(1-X_i)
+ =\sum_{\substack{A,B\subseteq[N],\ A\cap B=\varnothing\\
+                   f_n^*(\one_A)=1}}(-1)^{|B|} X^{A\cup B}.
 \]
-Hence any \(0<\delta<1/4\) works in that case. If it admits ports, the
-cycle restriction gives any \(0<\delta<\varepsilon/2\). Whether characteristic two
-admits ports is a fixed fact independent of \(d\), and each case applies to
-every sufficiently large even \(d\). Hence a single positive exponent works
-for the whole family \(P_d\).
+A Boolean verifier guesses the two indicator vectors, checks the two
+conditions in the last sum, and lists the bit \(\one\{i\in A\cup B\}\)
+with weight \(X_i\) once for each \(i\). One further listed bit, the
+parity of \(|B|\), has weight \(-1\). Its weighted sum is \(F_n^*\).
+The verifier has polynomial size in \(n\) because \(f_n^*\) is
+polynomial-time computable. By \cite[Lemma 3.4]{hc}, its weighted sum
+is a projection of the directed Hamiltonian-cycle polynomial of order
+at most \(A_0n^b\), for absolute constants \(A_0,b\ge1\). Every
+variable labels one arc. Splitting a vertex into a forced directed
+path with unit internal arc weights pads the projection to any larger
+order \(m\) and preserves this property.
+
+Now suppose an SML circuit with \(s\) wires computes the multilinear
+representative of \(B_m\). Its degree-\(m\) component is \(\HC_m\) by
+Section~\ref{sec:cycle}. Keep the homogeneous components of degrees
+\(0,\ldots,m\) at each gate, using convolution at products. This costs
+\(O((m+1)^2(s+1))\) wires. Each component uses a subset of its original
+gate's scope, so each new product has disjoint input scopes. The
+projection also preserves disjointness because distinct arc variables
+map to distinct surviving variables or to constants.
+
+For each large \(m\), take the largest even \(n\) with \(A_0n^b\le m\).
+Then \(n=\Theta(m^{1/b})\). Projecting the extracted circuit gives an
+SML circuit for \(F_n^*\), so Theorem~\ref{thm:all} yields
+\[
+ O((m+1)^2(s+1))\ \ge\ 2^{N^{\delta_\chi}},
+ \qquad N\ge n^2 .
+\]
+Thus \(\log s=\Omega(m^{2\delta_\chi/b})\), and every fixed
+\(0<\gamma_\chi<\delta_\chi/b\) works for the \(m^2\)-bit predicate.
 \end{proof}
 
-\section{Proof of the bias lemma}\label{sec:bias}
-We prove Lemma~\ref{lem:bias}. The exterior construction associates
-threshold ranks with the columns of a matrix \cite[Sections 8--10]{hc}.
-The argument follows the proof of \cite[Theorem 8.1]{hc}, with one column
-per site and with random biases in place of the evenly spaced biases used
-there at each site.
+\section{Remarks}\label{sec:status}
 
-\paragraph{Centering an insertion.}
-Each site \(u_i\) gives a flag \(F_i\) with standard logistic marginal.
-In its pair law with a finite flag \(Q\), the pairing is the expectation
-of the product. Since the barycenter is at the tip, the centering
-inequality that closes the subsection on site flags and the barycenter in
-\cite[Section 10]{hc} gives \(\sum_i\ip{Q}{F_i}\le0\).
-The insertion sum of two flags, defined as twice their midpoint,
-preserves addition of means and is 1-Lipschitz in each argument. Its
-squared norm is the sum of the two squared norms plus twice the pairing
-\cite[Section 9, insertion along a column curve]{hc}.
-Pairing with \(Q\) is \(\norm{Q}\)-Lipschitz \cite[Proposition 9.3]{hc}.
+\begin{remark}[Size conventions and all input lengths]
+In the corollaries, the constant-factor overhead of the translations of
+Sections~\ref{sec:sim} and~\ref{sec:prob-sim} is absorbed by taking any fixed positive exponent
+smaller than the exponent of the theorem being applied. For a d-D with \(g\) gates,
+merge identical input nodes and then remove duplicate inputs to each gate
+by Boolean idempotence; at most \((N+g+2)^2\) wires remain. For a
+read-once parity branching program with \(v\) vertices, identically
+labeled parallel edges cancel in pairs, and at most \((2N+2)v^2\) edges
+remain. Hence the same form of lower bound holds for the number of gates
+of a d-D and the number of vertices of a read-once parity branching
+program. At an arbitrary input length, take the largest even \(n\) with
+\(N_n\) at most that length and ignore the remaining bits. The ratio of
+\(N_n\) at consecutive even \(n\) tends to one, and pinning inputs
+preserves each of the models, so all bounds hold at every sufficiently
+large length.
+\end{remark}
 
-Fix \(|t|\le M/2\), set \(c_t=1/2-t/(2M)\), and write
-\(X(i,\xi)=\one_{\{F_i>t-\xi\}}-c_t\). For a uniform site \(I\) and
-an independent grid bias \(\xi\),
+\begin{remark}[The function does not depend on the proof]
+The family \(f^*_n\) is defined for every even \(n\) and involves neither
+a characteristic nor the constant \(\alpha\) of
+Theorem~\ref{thm:all}. The proof in Section~\ref{sec:proof-all} needs
+\(n_0=d\lceil d^{\alpha/2}\rceil\) bits grouped into \(d\) sites; it
+obtains them from the function at any \(n\ge n_0\) by the block
+substitution in Lemma~\ref{lem:realize}. One could instead define the
+function only at the lengths \(n_0\). We avoid this because \(\alpha\)
+depends on the constant \(c_*\) of Theorem~\ref{thm:cert}, which is
+absolute but not explicit.
+\end{remark}
+
+\begin{remark}[An upper bound in characteristic two]
+The function \(f_n\) of~\eqref{eq:fn} has a read-once parity
+branching program of size \(2^{O(n)}\). The first edges test the
+selector \(\zeta\). On the cycle branch, use states \((W,v)\) with
+\(1\in W\subseteq[n]\) and \(v\in W\), recording a walk from vertex 1
+that has visited exactly \(W\) and is currently at \(v\). For each
+\(u\notin W\), a chain of \(n\) edges from \((W,v)\) tests \(Y_{v,u}=1\)
+and \(Y_{v,u'}=0\) for \(u'\ne u\), and leads to \((W\cup\{u\},u)\). From
+\(([n],v)\) a final chain tests that row \(v\) is the indicator of column
+1 and leads to the sink. A row is tested only when the walk leaves its
+vertex, so every path is read-once. An accepting path tests every row;
+hence one exists exactly when \(Y\) is the permutation matrix of an
+\(n\)-cycle, and it is then unique. On the minor branch, use states
+\((i,R)\) with \(0\le i\le n\) and \(R\subseteq[k]\), recording the rows
+matched to selected columns among the first \(i\). From \((i-1,R)\) one
+edge tests \(x_i=0\) and leads to \((i,R)\). Another tests \(x_i=1\),
+followed for each \(r\notin R\) by an edge testing \(Y_{r,i}=1\) that
+leads to \((i,R\cup\{r\})\). The accepting state is \((n,[k])\). Step
+\(i\) tests only \(x_i\) and entries of column \(i\), so every path is
+read-once. The accepting paths correspond to the bijections
+\(\sigma:I(x)\to[k]\) with all \(Y_{\sigma(i),i}=1\). Their parity is the
+permanent of \(Y_{[k],I(x)}\), which equals the determinant in
+characteristic two. Both branches have \(2^{n}n^{O(1)}\) edges. The prefix
+simulation of Section~\ref{sec:sim} gives the same upper bound for
+syntactically multilinear circuits over fields of characteristic two, namely
+\(2^{O(\sqrt N)}\) in terms of the input length.
+\end{remark}
+
+\begin{remark}[Order of the constants]
+The constants of Section~\ref{sec:geometry} are chosen in the following
+order: \(C_E\) and \(c_P\) from (E1); then \(\Lambda\), \(c_1\), \(c_2\)
+and \(c_*\); then \(\alpha\) and \(\eta\); then the threshold \(d_0\).
+All but the last are absolute.
+\end{remark}
+
+\begin{remark}[Characteristics without ports]
+It is not known whether any characteristic fails to admit ports. If
+every characteristic admits ports, the unconditional bounds of
+Theorems~\ref{thm:two} and~\ref{thm:all} follow from
+\cite[Theorem 12.2]{hc} alone. The arguments of
+Sections~\ref{sec:two}--\ref{sec:proof-all} for characteristics without
+ports, and the quantitative bounds~\eqref{eq:all-quant}
+and~\eqref{eq:two-quant}, then concern an empty case.
+\end{remark}
+
+\appendix
+\section{The sharper characteristic-two bound}\label{app:sharp-two}
+Suppose characteristic two does not admit ports. We sharpen
+Proposition~\ref{prop:cuts} to
+\(\log(2L)=\Omega(\sqrt n/m^{5/4})\) by retaining the dependence of
+the transport error on the bias. By Lemma~\ref{lem:cut}, \(L\le s+1\)
+for a list serving all minor tables obtained from an \(s\)-wire circuit.
+Since \(N=n^2+n+1\), the sharper cut bound gives
+\begin{equation}\label{eq:two-quant}
+ \log s=\Omega\!\left(\frac{N^{1/4}}{(\log N)^{5/4}}\right).
+\end{equation}
+
+\begin{proof}[Proof of the sharper cut bound]
+Keep the notation \(q,R,a_{\ell i},D_\ell,b\) of
+Proposition~\ref{prop:cuts}, now assuming
+\(q\le\eta\sqrt n/m^{5/4}\) for a fixed \(0<\eta\le1\) to be chosen.
+Take \(R=\Theta(\sqrt{m+q})\) large enough to bound all supplier norms.
+Set \(\psi(t)=(1+t^2)e^{-|t|/2}\).
+The derivative formulas in the proof of Proposition~\ref{prop:cuts} give
 \[
-                  \E_{I,\xi}\ip{Q}{X(I,\xi)}
-                       \le O(d^{-2})\norm{Q}.
+ |\partial_r A(r,t)|+|\partial_r^2 A(r,t)|\le C\psi(t)
+ \qquad(1/2\le r\le2).
 \]
-Indeed, at flag value \(f\), a continuous uniform bias on \([-M,M]\)
-makes the mean indicator equal to \(c_t+f/(2M)\) clipped to \([0,1]\).
-Clipping occurs only for \(|f|>M/2\). The logistic tails and \(M=100\log(2d)\)
-give \(L^2\) clipping error \(O(d^{-10})\). Passing to the midpoint grid
-changes the mean by at most \(d^{-2}\) pointwise. Apply Cauchy--Schwarz
-in each pair law and average the remaining \(\ip{Q}{F_i}/(2M)\) over \(i\).
+Both \(\varphi^2\) and \(\psi\) are integrable and have bounded total
+variation. Their midpoint averages on \([-M,M]\) differ from their
+averages under the continuous uniform law by \(O(1/n)\). Consequently
+\(\E\varphi(\theta_i)^2=O(1/m)\) and \(\E\psi(\theta_i)=O(1/m)\).
 
-\paragraph{The second moment.}
-Insert the sites in a uniform permutation \(\pi\) with independent grid
-biases \(\xi_j\) indexed by position, so that \(\theta_{\pi(j)}=\xi_j\).
-Reindexing independent biases by an independent permutation preserves their
-joint law, so the \(\theta_i\) are distributed as in Lemma~\ref{lem:bias}.
-Let \(Z_j\) be the iterated insertion sum of the first \(j\) centered
-indicators. To bound the next pairing, swap the site at position \(j\)
-with an independent uniform site \(I\), keeping position biases fixed.
-The swapped permutation is uniform. Its earlier partial sum is within
-distance two of \(Z_{j-1}\), since at most one earlier indicator changes,
-each has norm at most one, and subsequent insertions are 1-Lipschitz.
-The original \(Z_{j-1}\) is independent of \(I,\xi_j\). It follows that
+As before \(\E D_\ell\ge 2b\), where \(b=c_1n/m^{3/2}\).
+The variance of \(D_\ell\) is \(O(nR^2/m)\), and each centered summand
+is \(O(R)\). Since \(Rb=O(nR^2/m)\), Bernstein's inequality gives
 \[
- \E\ip{Z_{j-1}}{X(\pi(j),\xi_j)}
-       \le 2+O(d^{-2})\,\E\norm{Z_{j-1}}.
+ \Pr\{\min_\ell D_\ell<b\}
+ \le L\exp\!\left(-\Omega\!\left(\frac{n}{m^2(m+q)}\right)\right)=o(1).
 \]
-Expanding the squared norm of the insertion and using
-\(\norm{Z_{j-1}}\le j-1\) gives \(\E\norm{Z_d}^2=O(d)\), uniformly in \(t\).
+Indeed \(m^2q(m+q)=o(n)\) under the assumed bound on \(q\).
+Markov's inequality gives \(\sum_i\psi(\theta_i)\le C_3n/m\) with
+probability at least \(7/8\). These two events and the event of
+Lemma~\ref{lem:star} therefore hold together for some biases and matrix \(C\).
 
-\paragraph{From threshold ranks to price.}
-Use the same order and biases at all thresholds
-\(t=\pm M2^{-\ell}\), \(1\le \ell\le\lceil\log_2 d\rceil\).
-By \cite[Lemma 9.4]{hc}, there is one \(k\times d\) Vandermonde matrix
-\(C\) with distinct parameters for this finite list. Its threshold rank
-\(r_t\), the dimension supplied by the columns at threshold \(t\), obeys
+For any \(\tau R\le1/4\), the cone expansion~\eqref{eq:two-distance}
+and Taylor's formula bound the error for bit \(i\) by
+\(O(\tau^2R^2\psi(\theta_i))\). Sum over bits and apply (W2) as in
+Proposition~\ref{prop:cuts}. Comparing with~\eqref{eq:star} yields
 \[
-    r_t\ge \E_{\rm flag}\min(k,V_t)-1,\qquad
-    V_t=Z_d+dc_t,\qquad
-    \E_{\rm flag}V_t=\sum_i p_i(t),\quad
-    p_i(t)=(1+e^{t-\theta_i})^{-1}.
+ c_1\tau n/m^{3/2}
+ \le C_4\tau^2(m+q)n/m+C_5\sqrt m\,q+C_6m^2 .
 \]
-Here \(\E_{\rm flag}\) averages over the flags with the realized biases and
-order held fixed. Let \(\lambda(C)\) be the exterior value of \(C\). The
-recovery formula at the start of \cite[Section 10]{hc} expresses it as
-\(\int_0^\infty r_s\,ds-\int_{-\infty}^0(k-r_s)\,ds\). Hence the deficit
-\(S(\theta)-\lambda(C)\) is the integral of \(K_+(t)=\sum_i p_i(t)-r_t\)
-over \(t>0\) plus the integral of \(K_-(t)=k-r_t\) over \(t<0\).
-Both losses are nonnegative and decrease away from zero, as in the proof
-of \cite[Theorem 8.1]{hc}. The first is the kernel dimension of the column
-map, whose domain shrinks as \(t\) grows. The second is the missing image
-dimension. At a test
-threshold the relevant loss is at most
+Take \(\tau=c_1/(2C_4\sqrt m\,(m+q))\), so \(\tau R=o(1)\) and the
+quadratic term is half the left side. Multiplication by \(m^2(m+q)\)
+then gives, for absolute positive \(c,C\),
 \[
- 1+\E_{\rm flag}\big(\operatorname{sgn}(t)Z_d-d|t|/(2M)\big)_+.
+ c n\le C\bigl(m^{5/2}q(m+q)+m^4(m+q)\bigr)
+       \le C\eta^2 n+o(n).
 \]
-Using \((z-v)_+\le z^2/(4v)\) for \(v>0\) and the second-moment bound
-gives expected loss \(1+O(M/|t|)\) over the biases and order. On each
-side of zero the innermost interval has length at most \(M/d\) and
-loss at most \(d\). Each remaining dyadic interval up to \(M/2\) costs
-\(O(M)\) by monotonicity, as does the interval from \(M/2\) to \(2M\)
-in absolute value. Beyond \(2M\) use \(K_+\le\sum_i p_i\). Below
-\(-2M\) any \(k\) basis columns supply independent dimensions, so
-\(K_-\le\sum_{i\text{ in basis}}(1-p_i)\). The logistic tails cost
-\(O(de^{-M})\) in total. Thus \(\E[S(\theta)-\lambda(C)]=O(M\log d)\).
+Choosing \(\eta\) sufficiently small contradicts this inequality for all
+large \(n\).
+\end{proof}
 
-In characteristic two, reordering wedge factors introduces no signs.
-In the subset bases the exterior tensor on \(a\) copies is therefore
-\(T_C^{\otimes a}\), since each coefficient is the product of the
-selected minors over copies. Fixing the occupation count on each leg restricts
-a weight sector to the corresponding exterior sector. Maximizing, per copy,
-the price of that sector plus its weights gives
-\(\price_\theta(T_C)\ge\lambda(C)\) by \cite[Sections 8 and 11]{hc}.
-The exterior deficit is nonnegative by transport from the tip.
-Markov's inequality at four times its expected bound gives success
-probability at least \(3/4\). Since the existence of a suitable \(C\)
-depends only on the biases \(\theta\), this proves Lemma~\ref{lem:bias}.
-
-\begin{thebibliography}{15}
+\begin{thebibliography}{23}
 \bibitem{hc} OpenAI.
 \href{https://github.com/openai/math/tree/main/preprints/Circuit-lower-bounds-for-Hamiltonian-cycle-and-the-permanent-November-24-2026}{\emph{Circuit lower bounds for Hamiltonian cycle and the permanent}}.
 November 24, 2026 edition.
@@ -586,6 +1864,10 @@ SIAM J. Comput. 12(4):641--644, 1983.
 \bibitem{ry} R. Raz and A. Yehudayoff.
 \emph{Balancing syntactically multilinear arithmetic circuits}.
 Comput. Complexity 17:515--535, 2008.
+\bibitem{kos} M. Kumar, R. Oliveira, and R. Saptharishi.
+\href{https://doi.org/10.4230/LIPIcs.ICALP.2019.78}{\emph{Towards optimal
+depth reductions for syntactically multilinear circuits}}.
+ICALP 2019, LIPIcs 132, Article 78.
 \bibitem{juknacodes} S. Jukna.
 \emph{Linear codes are hard for oblivious read-once parity branching
 programs}. Inform. Process. Lett. 69:267--269, 1999.
@@ -608,5 +1890,27 @@ J. Artificial Intelligence Res. 17:229--264, 2002.
 \bibitem{bcms} S. Bova, F. Capelli, S. Mengel, and F. Slivovsky.
 \emph{Knowledge compilation meets communication complexity}.
 IJCAI, 1008--1013, 2016.
+\bibitem{cvv} Y. Choi, A. Vergari, and G. Van den Broeck.
+\emph{Probabilistic circuits: A unifying framework for tractable
+probabilistic models}. Technical report, UCLA, 2020.
+\bibitem{mm} J. Martens and V. Medabalimi.
+\href{https://arxiv.org/abs/1411.7717}{\emph{On the expressive efficiency
+of sum product networks}}. 2014.
+\bibitem{lsm} L. Loconte, A. M. Sladek, S. Mengel, M. Trapp, A. Solin,
+N. Gillis, and A. Vergari.
+\href{https://arxiv.org/abs/2310.00724}{\emph{Subtractive mixture models
+via squaring: Representation and learning}}. ICLR, 2024.
+\bibitem{lmv} L. Loconte, S. Mengel, and A. Vergari.
+\href{https://arxiv.org/abs/2408.11778}{\emph{Sum of squares circuits}}.
+AAAI, 2025.
+\bibitem{sturm} K.-T. Sturm.
+\emph{Probability measures on metric spaces of nonpositive curvature}.
+In: Heat Kernels and Analysis on Manifolds, Graphs, and Metric Spaces,
+Contemp. Math. 338, 357--390, 2003.
+\bibitem{bh} M. R. Bridson and A. Haefliger.
+\emph{Metric Spaces of Non-Positive Curvature}. Springer, 1999.
+\bibitem{sion} M. Sion.
+\emph{On general minimax theorems}.
+Pacific J. Math. 8(1):171--176, 1958.
 \end{thebibliography}
 \end{document}
